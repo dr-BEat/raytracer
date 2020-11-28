@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 bmp = "0.5.0"
+vecmat = "0.4.2"
