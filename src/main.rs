@@ -7,6 +7,12 @@ use alias::*;
 mod ray;
 use ray::*;
 
+mod hittable;
+use hittable::*;
+
+mod sphere;
+use sphere::Sphere;
+
 fn pixel_from_color(color: Color) -> Pixel {
     Pixel::new(
         (color[0] * 255.9999) as u8,
@@ -15,22 +21,10 @@ fn pixel_from_color(color: Color) -> Pixel {
     )
 }
 
-fn hit_sphere(center: &Point, radius: f64, r: &Ray) -> f64 {
-    let oc = r.origin - *center;
-    let a = r.direction.sqrlen();
-    let half_b = oc.dot(r.direction);
-    let c = oc.sqrlen() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (-half_b - discriminant.sqrt()) / a;
-    }
-}
-
 fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(&Point::from_array([0.0, 0.0, -1.0]), 0.5, &r);
-    if t > 0.0 {
+    let hit_result = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5).hit(r, 0.0, 1.0);
+    if let Some(hit) = hit_result {
+        let t = hit.t;
         let n = (r.at(t) - Vector::from_array([0.0, 0.0, -1.0])).normalize();
         return 0.5 * Color::from_array([n[0] + 1.0, n[1] + 1.0, n[2] + 1.0]);
     }
