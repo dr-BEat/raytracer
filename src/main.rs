@@ -1,6 +1,9 @@
 extern crate bmp;
 use bmp::{Image, Pixel};
 
+use std::io;
+use std::io::Write;
+
 mod alias;
 use alias::*;
 
@@ -64,6 +67,7 @@ fn main() {
                 "\rScanlines remaining: {:>3}%",
                 100 - 100 * y / image_height
             );
+            io::stdout().flush().ok().expect("Could not flush stdout");
         }
         let u = x as f64 / (image_width - 1) as f64;
         let v = (image_height - y - 1) as f64 / (image_height - 1) as f64;
