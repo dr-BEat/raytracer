@@ -4,24 +4,8 @@ use bmp::{Image, Pixel};
 mod alias;
 use alias::*;
 
-#[derive(Default)]
-struct Ray {
-    origin: Point,
-    direction: Vector,
-}
-
-impl Ray {
-    fn new(origin: Point, direction: Vector) -> Self {
-        Self {
-            origin: origin,
-            direction: direction,
-        }
-    }
-
-    fn at(&self, time: f64) -> Point {
-        self.origin + time * self.direction
-    }
-}
+mod ray;
+use ray::*;
 
 fn pixel_from_color(color: Color) -> Pixel {
     Pixel::new(
