@@ -7,6 +7,9 @@ use alias::*;
 mod ray;
 use ray::*;
 
+mod cam;
+use cam::*;
+
 mod hittable;
 use hittable::*;
 
@@ -51,15 +54,7 @@ fn main() {
     ]);
 
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point::new();
-    let horizontal = Vector::from_array([viewport_width, 0.0, 0.0]);
-    let vertical = Vector::from_array([0.0, viewport_height, 0.0]);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vector::from_array([0.0, 0.0, focal_length]);
+    let cam = Camera::new();
 
     let mut img = Image::new(image_width, image_height);
 
@@ -72,10 +67,7 @@ fn main() {
         }
         let u = x as f64 / (image_width - 1) as f64;
         let v = (image_height - y - 1) as f64 / (image_height - 1) as f64;
-        let r = Ray::new(
-            origin,
-            lower_left_corner + u * horizontal + v * vertical - origin,
-        );
+        let r = cam.get_ray(u, v);
         let pixel_color = ray_color(&r, &world);
 
         img.set_pixel(x, y, pixel_from_color(pixel_color));
