@@ -10,6 +10,9 @@ use ray::*;
 mod hittable;
 use hittable::*;
 
+mod hittablelist;
+use hittablelist::*;
+
 mod sphere;
 use sphere::Sphere;
 
@@ -22,7 +25,11 @@ fn pixel_from_color(color: Color) -> Pixel {
 }
 
 fn ray_color(r: &Ray) -> Color {
-    let hit_result = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5).hit(r, 0.0, 1.0);
+    let sphere = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5);
+    let sphere2 = Sphere::new(Point::from_array([0.0, 0.5, -1.0]), 0.5);
+    let hittables = HittableList(vec![Box::new(sphere), Box::new(sphere2)]);
+
+    let hit_result = hittables.hit(r, 0.0, 1.0);
     if let Some(hit) = hit_result {
         let t = hit.t;
         let n = (r.at(t) - Vector::from_array([0.0, 0.0, -1.0])).normalize();
