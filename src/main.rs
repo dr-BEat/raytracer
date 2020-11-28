@@ -24,16 +24,10 @@ fn pixel_from_color(color: Color) -> Pixel {
     )
 }
 
-fn ray_color(r: &Ray) -> Color {
-    let sphere = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5);
-    let sphere2 = Sphere::new(Point::from_array([0.0, 0.5, -1.0]), 0.5);
-    let hittables = HittableList(vec![Box::new(sphere), Box::new(sphere2)]);
-
-    let hit_result = hittables.hit(r, 0.0, 1.0);
+fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+    let hit_result = world.hit(r, 0.0, f64::INFINITY);
     if let Some(hit) = hit_result {
-        let t = hit.t;
-        let n = (r.at(t) - Vector::from_array([0.0, 0.0, -1.0])).normalize();
-        return 0.5 * Color::from_array([n[0] + 1.0, n[1] + 1.0, n[2] + 1.0]);
+        return 0.5 * (hit.normal + Color::from_array([1.0, 1.0, 1.0]));
     }
 
     // Background
@@ -49,6 +43,13 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio) as u32;
 
     println!("{} {}", image_width, image_height);
+
+    // World
+    let world = HittableList(vec![
+        Box::new(Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5)),
+        Box::new(Sphere::new(Point::from_array([0.0, -100.5, -1.0]), 100.0)),
+    ]);
+
     // Camera
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
@@ -75,7 +76,7 @@ fn main() {
             origin,
             lower_left_corner + u * horizontal + v * vertical - origin,
         );
-        let pixel_color = ray_color(&r);
+        let pixel_color = ray_color(&r, &world);
 
         img.set_pixel(x, y, pixel_from_color(pixel_color));
     }
