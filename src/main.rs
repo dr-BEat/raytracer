@@ -1,10 +1,8 @@
 extern crate bmp;
 use bmp::{Image, Pixel};
-use vecmat::vec::*;
 
-type Color = Vec3<f64>;
-type Point = Vec3<f64>;
-type Vector = Vec3<f64>;
+mod alias;
+use alias::*;
 
 #[derive(Default)]
 struct Ray {
