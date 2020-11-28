@@ -1,6 +1,7 @@
 extern crate bmp;
 use bmp::{Image, Pixel};
 
+use rand::Rng;
 use std::io;
 use std::io::Write;
 
@@ -47,6 +48,7 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
+    let samples_per_pixel = 10;
 
     println!("{} {}", image_width, image_height);
 
@@ -60,7 +62,7 @@ fn main() {
     let cam = Camera::new();
 
     let mut img = Image::new(image_width, image_height);
-
+    let mut rng = rand::thread_rng();
     for (x, y) in img.coordinates() {
         if x == 0 {
             print!(
@@ -69,11 +71,14 @@ fn main() {
             );
             io::stdout().flush().ok().expect("Could not flush stdout");
         }
-        let u = x as f64 / (image_width - 1) as f64;
-        let v = (image_height - y - 1) as f64 / (image_height - 1) as f64;
-        let r = cam.get_ray(u, v);
-        let pixel_color = ray_color(&r, &world);
-
+        let mut pixel_color = Color::new();
+        for _ in 0..samples_per_pixel {
+            let u = (x as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
+            let v = ((image_height - y - 1) as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
+            let r = cam.get_ray(u, v);
+            pixel_color += ray_color(&r, &world);
+        }
+        pixel_color /= samples_per_pixel as f64;
         img.set_pixel(x, y, pixel_from_color(pixel_color));
     }
     println!("\rScanlines remaining:   0%");
