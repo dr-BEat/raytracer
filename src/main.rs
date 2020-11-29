@@ -45,7 +45,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
 
     let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
-        let target = hit.p + hit.normal + random_in_unit_sphere();
+        let target = hit.p + hit.normal + random_unit_vector();
         return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
     }
 

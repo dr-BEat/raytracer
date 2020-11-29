@@ -19,3 +19,7 @@ pub fn random_in_unit_sphere() -> Point {
         }
     }
 }
+
+pub fn random_unit_vector() -> Vector {
+    random_in_unit_sphere().normalize()
+}
