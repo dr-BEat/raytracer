@@ -31,10 +31,16 @@ fn pixel_from_color(color: Color) -> Pixel {
     )
 }
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if depth <= 0 {
+        return Color::new();
+    }
+
     let hit_result = world.hit(r, 0.0, f64::INFINITY);
     if let Some(hit) = hit_result {
-        return 0.5 * (hit.normal + Color::from_array([1.0, 1.0, 1.0]));
+        let target = hit.p + hit.normal + random_in_unit_sphere();
+        return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
     }
 
     // Background
@@ -49,6 +55,7 @@ fn main() {
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 10;
+    let max_depth = 2;
 
     println!("{} {}", image_width, image_height);
 
@@ -76,7 +83,7 @@ fn main() {
             let u = (x as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
             let v = ((image_height - y - 1) as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
             let r = cam.get_ray(u, v);
-            pixel_color += ray_color(&r, &world);
+            pixel_color += ray_color(&r, &world, max_depth);
         }
         pixel_color /= samples_per_pixel as f64;
         img.set_pixel(x, y, pixel_from_color(pixel_color));
