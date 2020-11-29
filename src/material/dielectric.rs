@@ -20,12 +20,20 @@ impl Material for Dielectric {
             self.ir
         };
 
-        let unit_direction = &r.direction.normalize();
-        let refracted = refract(&unit_direction, &hit.normal, refraction_ratio);
+        let unit_direction = r.direction.normalize();
+        let cos_theta = (-unit_direction).dot(hit.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+        let direction = if cannot_refract {
+            reflect(&unit_direction, &hit.normal)
+        } else {
+            refract(&unit_direction, &hit.normal, refraction_ratio)
+        };
 
         Some((
             Color::from_array([1.0, 1.0, 1.0]),
-            Ray::new(hit.p, refracted),
+            Ray::new(hit.p, direction),
         ))
     }
 }

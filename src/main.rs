@@ -72,7 +72,7 @@ fn main() {
 
     // World
     let material_ground = Lambertian::new(Color::from_array([0.8, 0.8, 0.0]));
-    let material_center = Dielectric::new(1.5);
+    let material_center = Lambertian::new(Color::from_array([0.1, 0.2, 0.5]));
     let material_left = Dielectric::new(1.5);
     let material_right = Metal::new(Color::from_array([0.8, 0.6, 0.2]), 1.0);
 
