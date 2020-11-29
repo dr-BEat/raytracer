@@ -24,7 +24,7 @@ mod sphere;
 use sphere::Sphere;
 
 mod material;
-use crate::material::Lambertian;
+use crate::material::*;
 
 fn pixel_from_color(color: Color) -> Pixel {
     // gamma-correct for gamma=2.0
@@ -66,16 +66,31 @@ fn main() {
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 4;
-    let max_depth = 10;
+    let max_depth = 50;
 
     println!("{} {}", image_width, image_height);
 
     // World
-    let material = Lambertian::new(Color::from_array([0.0, 1.0, 0.0]));
-    let sphere = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5, &material);
-    let material2 = Lambertian::new(Color::from_array([0.0, 0.0, 1.0]));
-    let sphere2 = Sphere::new(Point::from_array([0.0, -100.5, -1.0]), 100.0, &material2);
-    let world = HittableList(vec![&sphere, &sphere2]);
+    let material_ground = Lambertian::new(Color::from_array([0.8, 0.8, 0.0]));
+    let material_center = Lambertian::new(Color::from_array([0.7, 0.3, 0.3]));
+    let material_left = Metal::new(Color::from_array([0.8, 0.8, 0.8]));
+    let material_right = Metal::new(Color::from_array([0.8, 0.6, 0.2]));
+
+    let sphere_ground = Sphere::new(
+        Point::from_array([0.0, -100.5, -1.0]),
+        100.0,
+        &material_ground,
+    );
+    let sphere_center = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5, &material_center);
+    let sphere_left = Sphere::new(Point::from_array([-1.0, 0.0, -1.0]), 0.5, &material_left);
+    let sphere_right = Sphere::new(Point::from_array([1.0, 0.0, -1.0]), 0.5, &material_right);
+
+    let world = HittableList(vec![
+        &sphere_ground,
+        &sphere_center,
+        &sphere_left,
+        &sphere_right,
+    ]);
 
     // Camera
     let cam = Camera::new();

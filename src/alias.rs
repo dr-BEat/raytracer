@@ -25,3 +25,7 @@ pub fn near_zero(v: &Vector) -> bool {
     let s = 1e-8;
     (v[0].abs() < s) && (v[1].abs() < s) && (v[2].abs() < s)
 }
+
+pub fn reflect(v: &Vector, n: &Vector) -> Vector {
+    return *v - 2.0 * v.dot(*n) * *n;
+}
