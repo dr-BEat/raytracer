@@ -24,10 +24,16 @@ mod sphere;
 use sphere::Sphere;
 
 fn pixel_from_color(color: Color) -> Pixel {
+    // gamma-correct for gamma=2.0
+    let r = color[0].sqrt();
+    let g = color[1].sqrt();
+    let b = color[2].sqrt();
+
+    // Write the translated [0,255] value of each color component.
     Pixel::new(
-        (color[0] * 255.9999) as u8,
-        (color[1] * 255.9999) as u8,
-        (color[2] * 255.9999) as u8,
+        (r.min(0.9999).max(0.0) * 256.0) as u8,
+        (g.min(0.9999).max(0.0) * 256.0) as u8,
+        (b.min(0.9999).max(0.0) * 256.0) as u8,
     )
 }
 
