@@ -1,22 +1,25 @@
 use crate::alias::*;
 use crate::hittable::*;
+use crate::material::*;
 use crate::ray::*;
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     center: Point,
     radius: f64,
+    material: &'a dyn Material,
 }
 
-impl Sphere {
-    pub fn new(center: Point, radius: f64) -> Self {
+impl<'a> Sphere<'a> {
+    pub fn new(center: Point, radius: f64, material: &'a dyn Material) -> Self {
         Self {
             center: center,
             radius: radius,
+            material: material,
         }
     }
 }
 
-impl Hittable for Sphere {
+impl Hittable for Sphere<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.origin - self.center;
         let a = r.direction.sqrlen();
@@ -39,6 +42,6 @@ impl Hittable for Sphere {
 
         let p = r.at(root);
         let outward_normal = (p - self.center) / self.radius;
-        Some(HitRecord::new(r, p, root, outward_normal))
+        Some(HitRecord::new(r, p, root, outward_normal, self.material))
     }
 }

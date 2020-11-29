@@ -48,8 +48,10 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
 
     let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
-        let target = hit.p + hit.normal + random_unit_vector();
-        return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
+        if let Some((attenuation, scattered)) = hit.material.scatter(r, &hit) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+        return Color::new();
     }
 
     // Background
@@ -64,15 +66,16 @@ fn main() {
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 4;
-    let max_depth = 4;
+    let max_depth = 10;
 
     println!("{} {}", image_width, image_height);
 
     // World
-    let world = HittableList(vec![
-        Box::new(Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5)),
-        Box::new(Sphere::new(Point::from_array([0.0, -100.5, -1.0]), 100.0)),
-    ]);
+    let material = Lambertian::new(Color::from_array([0.0, 1.0, 0.0]));
+    let sphere = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5, &material);
+    let material2 = Lambertian::new(Color::from_array([0.0, 0.0, 1.0]));
+    let sphere2 = Sphere::new(Point::from_array([0.0, -100.5, -1.0]), 100.0, &material2);
+    let world = HittableList(vec![&sphere, &sphere2]);
 
     // Camera
     let cam = Camera::new();

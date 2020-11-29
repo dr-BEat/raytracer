@@ -1,9 +1,9 @@
 use crate::hittable::*;
 use crate::ray::*;
 
-pub struct HittableList(pub Vec<Box<dyn Hittable>>);
+pub struct HittableList<'a>(pub Vec<&'a dyn Hittable>);
 
-impl Hittable for HittableList {
+impl Hittable for HittableList<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut record = None;
         let mut closest_so_far = t_max;
