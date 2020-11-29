@@ -29,3 +29,10 @@ pub fn near_zero(v: &Vector) -> bool {
 pub fn reflect(v: &Vector, n: &Vector) -> Vector {
     return *v - 2.0 * v.dot(*n) * *n;
 }
+
+pub fn refract(uv: &Vector, n: &Vector, etai_over_etat: f64) -> Vector {
+    let cos_theta = (-*uv).dot(*n).min(1.0);
+    let r_out_perp = etai_over_etat * (*uv + cos_theta * *n);
+    let r_out_parallel = -(1.0 - r_out_perp.sqrlen()).abs().sqrt() * *n;
+    r_out_perp + r_out_parallel
+}
