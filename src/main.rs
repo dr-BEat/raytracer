@@ -43,7 +43,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
         return Color::new();
     }
 
-    let hit_result = world.hit(r, 0.0, f64::INFINITY);
+    let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
         let target = hit.p + hit.normal + random_in_unit_sphere();
         return 0.5 * ray_color(&Ray::new(hit.p, target - hit.p), world, depth - 1);
@@ -60,8 +60,8 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 10;
-    let max_depth = 2;
+    let samples_per_pixel = 4;
+    let max_depth = 4;
 
     println!("{} {}", image_width, image_height);
 
