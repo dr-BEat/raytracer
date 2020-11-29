@@ -23,6 +23,9 @@ use hittablelist::*;
 mod sphere;
 use sphere::Sphere;
 
+mod material;
+use crate::material::Lambertian;
+
 fn pixel_from_color(color: Color) -> Pixel {
     // gamma-correct for gamma=2.0
     let r = color[0].sqrt();

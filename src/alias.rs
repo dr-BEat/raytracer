@@ -5,10 +5,6 @@ pub type Color = Vec3<f64>;
 pub type Point = Vec3<f64>;
 pub type Vector = Vec3<f64>;
 
-pub fn random_vector() -> Vector {
-    Vector::from_array([rand::random(), rand::random(), rand::random()])
-}
-
 pub fn random_in_unit_sphere() -> Point {
     let mut rng = rand::thread_rng();
     loop {
@@ -22,4 +18,10 @@ pub fn random_in_unit_sphere() -> Point {
 
 pub fn random_unit_vector() -> Vector {
     random_in_unit_sphere().normalize()
+}
+
+pub fn near_zero(v: &Vector) -> bool {
+    // Return true if the vector is close to zero in all dimensions.
+    let s = 1e-8;
+    (v[0].abs() < s) && (v[1].abs() < s) && (v[2].abs() < s)
 }
