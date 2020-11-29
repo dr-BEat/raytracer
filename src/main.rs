@@ -65,7 +65,7 @@ fn main() {
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 640;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 4;
+    let samples_per_pixel = 10;
     let max_depth = 50;
 
     println!("{} {}", image_width, image_height);
@@ -73,8 +73,8 @@ fn main() {
     // World
     let material_ground = Lambertian::new(Color::from_array([0.8, 0.8, 0.0]));
     let material_center = Lambertian::new(Color::from_array([0.7, 0.3, 0.3]));
-    let material_left = Metal::new(Color::from_array([0.8, 0.8, 0.8]));
-    let material_right = Metal::new(Color::from_array([0.8, 0.6, 0.2]));
+    let material_left = Metal::new(Color::from_array([0.8, 0.8, 0.8]), 0.3);
+    let material_right = Metal::new(Color::from_array([0.8, 0.6, 0.2]), 1.0);
 
     let sphere_ground = Sphere::new(
         Point::from_array([0.0, -100.5, -1.0]),
