@@ -25,15 +25,23 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = refraction_ratio * sin_theta > 1.0;
-        let direction = if cannot_refract {
-            reflect(&unit_direction, &hit.normal)
-        } else {
-            refract(&unit_direction, &hit.normal, refraction_ratio)
-        };
+        let direction =
+            if cannot_refract || reflectance(cos_theta, refraction_ratio) > rand::random() {
+                reflect(&unit_direction, &hit.normal)
+            } else {
+                refract(&unit_direction, &hit.normal, refraction_ratio)
+            };
 
         Some((
             Color::from_array([1.0, 1.0, 1.0]),
             Ray::new(hit.p, direction),
         ))
     }
+}
+
+fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
+    // Use Schlick's approximation for reflectance.
+    let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+    let r0 = r0 * r0;
+    return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
 }
