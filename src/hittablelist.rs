@@ -1,7 +1,7 @@
 use crate::hittable::*;
 use crate::ray::*;
 
-pub struct HittableList<'a>(pub Vec<&'a dyn Hittable>);
+pub struct HittableList<'a>(pub Vec<&'a (dyn Hittable + Sync)>);
 
 impl Hittable for HittableList<'_> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {

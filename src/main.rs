@@ -1,5 +1,6 @@
 extern crate bmp;
 use bmp::{Image, Pixel};
+use rayon::prelude::*;
 use std::time::Instant;
 
 mod alias;
@@ -60,9 +61,9 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
 fn main() {
     // Image
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 1024;
+    let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 10;
+    let samples_per_pixel = 100;
     let max_depth = 50;
 
     println!("{} {}", image_width, image_height);
@@ -109,28 +110,28 @@ fn main() {
 
     let mut img = Image::new(image_width, image_height);
     let now = Instant::now();
-    let mut rng = rand::thread_rng();
-    for (x, y) in img.coordinates() {
-        if x == 0 {
-            print!(
-                "\rScanlines remaining: {:>3}%",
-                100 - 100 * y / image_height
-            );
-            io::stdout().flush().ok().expect("Could not flush stdout");
-        }
-        let mut pixel_color = Color::new();
-        for _ in 0..samples_per_pixel {
-            let u = (x as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
-            let v = ((image_height - y - 1) as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
-            let r = cam.get_ray(u, v);
-            pixel_color += ray_color(&r, &world, max_depth);
-        }
-        pixel_color /= samples_per_pixel as f64;
-        img.set_pixel(x, y, pixel_from_color(pixel_color));
+    let pixels = img
+        .coordinates()
+        .collect::<Vec<_>>()
+        .par_iter()
+        .map(|(x, y)| {
+            let mut pixel_color = Color::new();
+            for _ in 0..samples_per_pixel {
+                let u = ((*x) as f64 + rand::random::<f64>()) / (image_width - 1) as f64;
+                let v = ((image_height - y - 1) as f64 + rand::random::<f64>())
+                    / (image_height - 1) as f64;
+                let r = cam.get_ray(u, v);
+                pixel_color += ray_color(&r, &world, max_depth);
+            }
+            pixel_color /= samples_per_pixel as f64;
+            ((*x, *y), pixel_from_color(pixel_color))
+        })
+        .collect::<Vec<_>>();
+
+    for pixel in pixels {
+        img.set_pixel(pixel.0 .0, pixel.0 .1, pixel.1);
     }
-    println!("\rScanlines remaining:   0%");
     println!("Rendered in {} seconds", now.elapsed().as_secs_f32());
-    //Rendered in 6.6520395, 6.810336 seconds
     let _ = img.save("img.bmp");
     println!("Created img.bmp");
 }
