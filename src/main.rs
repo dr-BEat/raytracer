@@ -99,7 +99,7 @@ fn main() {
     let lookat = Point::from_array([0.0, 0.0, -1.0]);
     let vup = Vector::from_array([0.0, 1.0, 0.0]);
     let dist_to_focus = (lookfrom - lookat).length();
-    let aperture = 2.0;
+    let aperture = 0.1;
     let cam = Camera::new(
         lookfrom,
         lookat,
