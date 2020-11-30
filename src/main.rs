@@ -95,7 +95,13 @@ fn main() {
     ]);
 
     // Camera
-    let cam = Camera::new(90.0, aspect_ratio);
+    let cam = Camera::new(
+        Point::from_array([-2.0, 2.0, 1.0]),
+        Point::from_array([0.0, 0.0, -1.0]),
+        Vector::from_array([0.0, 1.0, 0.0]),
+        20.0,
+        aspect_ratio,
+    );
 
     let mut img = Image::new(image_width, image_height);
     let mut rng = rand::thread_rng();
