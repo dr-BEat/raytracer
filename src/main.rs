@@ -1,9 +1,6 @@
 extern crate bmp;
 use bmp::{Image, Pixel};
-
-use rand::Rng;
-use std::io;
-use std::io::Write;
+use std::time::Instant;
 
 mod alias;
 use alias::*;
@@ -111,6 +108,7 @@ fn main() {
     );
 
     let mut img = Image::new(image_width, image_height);
+    let now = Instant::now();
     let mut rng = rand::thread_rng();
     for (x, y) in img.coordinates() {
         if x == 0 {
@@ -131,6 +129,8 @@ fn main() {
         img.set_pixel(x, y, pixel_from_color(pixel_color));
     }
     println!("\rScanlines remaining:   0%");
+    println!("Rendered in {} seconds", now.elapsed().as_secs_f32());
+    //Rendered in 6.6520395, 6.810336 seconds
     let _ = img.save("img.bmp");
     println!("Created img.bmp");
 }
