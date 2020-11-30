@@ -8,6 +8,7 @@ pub struct Camera {
     vertical: Vector,
     u: Vector,
     v: Vector,
+    #[allow(dead_code)]
     w: Vector,
     lens_radius: f64,
 }
