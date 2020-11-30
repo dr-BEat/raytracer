@@ -95,12 +95,19 @@ fn main() {
     ]);
 
     // Camera
+    let lookfrom = Point::from_array([3.0, 3.0, 2.0]);
+    let lookat = Point::from_array([0.0, 0.0, -1.0]);
+    let vup = Vector::from_array([0.0, 1.0, 0.0]);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
     let cam = Camera::new(
-        Point::from_array([-2.0, 2.0, 1.0]),
-        Point::from_array([0.0, 0.0, -1.0]),
-        Vector::from_array([0.0, 1.0, 0.0]),
+        lookfrom,
+        lookat,
+        vup,
         20.0,
         aspect_ratio,
+        aperture,
+        dist_to_focus,
     );
 
     let mut img = Image::new(image_width, image_height);

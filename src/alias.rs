@@ -24,6 +24,17 @@ pub fn random_unit_vector() -> Vector {
     random_in_unit_sphere().normalize()
 }
 
+pub fn random_in_unit_disk() -> Point {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p = Point::from_array([rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0]);
+
+        if p.sqrlen() < 1.0 {
+            return p;
+        }
+    }
+}
+
 pub fn near_zero(v: &Vector) -> bool {
     // Return true if the vector is close to zero in all dimensions.
     let s = 1e-8;
