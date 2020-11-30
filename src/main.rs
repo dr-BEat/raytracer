@@ -83,12 +83,14 @@ fn main() {
     );
     let sphere_center = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5, &material_center);
     let sphere_left = Sphere::new(Point::from_array([-1.0, 0.0, -1.0]), 0.5, &material_left);
+    let sphere_left_inner = Sphere::new(Point::from_array([-1.0, 0.0, -1.0]), -0.4, &material_left);
     let sphere_right = Sphere::new(Point::from_array([1.0, 0.0, -1.0]), 0.5, &material_right);
 
     let world = HittableList(vec![
         &sphere_ground,
         &sphere_center,
         &sphere_left,
+        &sphere_left_inner,
         &sphere_right,
     ]);
 
