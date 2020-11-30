@@ -60,10 +60,10 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
 
 fn main() {
     // Image
-    let aspect_ratio = 16.0 / 9.0;
+    let aspect_ratio = 3.0 / 2.0;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let max_depth = 50;
 
     println!("{} {}", image_width, image_height);
@@ -93,10 +93,10 @@ fn main() {
     ]);
 
     // Camera
-    let lookfrom = Point::from_array([3.0, 3.0, 2.0]);
-    let lookat = Point::from_array([0.0, 0.0, -1.0]);
+    let lookfrom = Point::from_array([13.0, 2.0, 3.0]);
+    let lookat = Point::from_array([0.0, 0.0, 0.0]);
     let vup = Vector::from_array([0.0, 1.0, 0.0]);
-    let dist_to_focus = (lookfrom - lookat).length();
+    let dist_to_focus = 10.0;
     let aperture = 0.1;
     let cam = Camera::new(
         lookfrom,

@@ -5,6 +5,14 @@ pub type Color = Vec3<f64>;
 pub type Point = Vec3<f64>;
 pub type Vector = Vec3<f64>;
 
+pub fn random_vector() -> Vector {
+    Vector::from_array([
+        rand::random::<f64>(),
+        rand::random::<f64>(),
+        rand::random::<f64>(),
+    ])
+}
+
 pub fn random_in_unit_sphere() -> Point {
     let mut rng = rand::thread_rng();
     loop {
