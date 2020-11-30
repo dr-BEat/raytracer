@@ -63,7 +63,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
 fn main() {
     // Image
     let aspect_ratio = 16.0 / 9.0;
-    let image_width = 640;
+    let image_width = 1024;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 10;
     let max_depth = 50;
