@@ -2,6 +2,7 @@ extern crate image;
 use image::ImageBuffer;
 use image::Rgb;
 use image::RgbImage;
+use rand::Rng;
 use rayon::prelude::*;
 use std::time::Instant;
 
@@ -54,6 +55,67 @@ fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
     (1.0 - t) * Color::from_array([1.0, 1.0, 1.0]) + t * Color::from_array([0.5, 0.7, 1.0])
 }
 
+fn random_scene() -> Hittable {
+    let mut hittables: Vec<Hittable> = vec![Hittable::new_sphere(
+        Point::from_array([0.0, -1000.0, 0.0]),
+        1000.0,
+        Material::new_lambertian(Color::from_array([0.5, 0.5, 0.5])),
+    )];
+
+    let mut rng = rand::thread_rng();
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rand::random::<f64>();
+            let center = Point::from_array([
+                a as f64 + 0.9 * rand::random::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rand::random::<f64>(),
+            ]);
+
+            if (center - Point::from_array([4.0, 0.2, 0.0])).length() > 0.9 {
+                let sphere_material = if choose_mat < 0.8 {
+                    // diffuse
+                    let albedo = random_vector() * random_vector();
+                    Material::new_lambertian(albedo)
+                } else if choose_mat < 0.95 {
+                    // metal
+                    let albedo = Vector::from_array([
+                        rng.gen_range(0.5, 1.0),
+                        rng.gen_range(0.5, 1.0),
+                        rng.gen_range(0.5, 1.0),
+                    ]);
+                    let fuzz = rng.gen_range(0.0, 0.5);
+                    Material::new_metal(albedo, fuzz)
+                } else {
+                    // glass
+                    Material::new_dielectric(1.5)
+                };
+                hittables.push(Hittable::new_sphere(center, 0.2, sphere_material));
+            }
+        }
+    }
+
+    hittables.push(Hittable::new_sphere(
+        Point::from_array([0.0, 1.0, 0.0]),
+        1.0,
+        Material::new_dielectric(1.5),
+    ));
+
+    hittables.push(Hittable::new_sphere(
+        Point::from_array([-4.0, 1.0, 0.0]),
+        1.0,
+        Material::new_lambertian(Color::from_array([0.4, 0.2, 0.1])),
+    ));
+
+    hittables.push(Hittable::new_sphere(
+        Point::from_array([4.0, 1.0, 0.0]),
+        1.0,
+        Material::new_metal(Color::from_array([0.7, 0.6, 0.5]), 0.0),
+    ));
+
+    Hittable::List(hittables)
+}
+
 fn main() {
     // Image
     let aspect_ratio = 3.0 / 2.0;
@@ -91,6 +153,8 @@ fn main() {
         sphere_left_inner,
         sphere_right,
     ]);
+
+    let world = random_scene();
 
     // Camera
     let lookfrom = Point::from_array([13.0, 2.0, 3.0]);
