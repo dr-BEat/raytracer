@@ -1,5 +1,7 @@
-extern crate bmp;
-use bmp::{Image, Pixel};
+extern crate image;
+use image::ImageBuffer;
+use image::Rgb;
+use image::RgbImage;
 use rayon::prelude::*;
 use std::time::Instant;
 
@@ -24,18 +26,18 @@ use sphere::Sphere;
 mod material;
 use crate::material::*;
 
-fn pixel_from_color(color: Color) -> Pixel {
+fn pixel_from_color(color: Color) -> Rgb<u8> {
     // gamma-correct for gamma=2.0
     let r = color[0].sqrt();
     let g = color[1].sqrt();
     let b = color[2].sqrt();
 
     // Write the translated [0,255] value of each color component.
-    Pixel::new(
+    Rgb([
         (r.min(0.9999).max(0.0) * 256.0) as u8,
         (g.min(0.9999).max(0.0) * 256.0) as u8,
         (b.min(0.9999).max(0.0) * 256.0) as u8,
-    )
+    ])
 }
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
@@ -108,10 +110,10 @@ fn main() {
         dist_to_focus,
     );
 
-    let mut img = Image::new(image_width, image_height);
+    let mut image: RgbImage = ImageBuffer::new(image_width, image_height);
     let now = Instant::now();
-    let pixels = img
-        .coordinates()
+    let pixels = (0..image_width)
+        .flat_map(move |x| (0..image_height).map(move |y| (x, y)))
         .collect::<Vec<_>>()
         .par_iter()
         .map(|(x, y)| {
@@ -129,9 +131,9 @@ fn main() {
         .collect::<Vec<_>>();
 
     for pixel in pixels {
-        img.set_pixel(pixel.0 .0, pixel.0 .1, pixel.1);
+        image.put_pixel(pixel.0 .0, pixel.0 .1, pixel.1);
     }
     println!("Rendered in {} seconds", now.elapsed().as_secs_f32());
-    let _ = img.save("img.bmp");
-    println!("Created img.bmp");
+    image.save("image.png").unwrap();
+    println!("Created img.png");
 }
