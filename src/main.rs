@@ -17,12 +17,6 @@ use cam::*;
 mod hittable;
 use hittable::*;
 
-mod hittablelist;
-use hittablelist::*;
-
-mod sphere;
-use sphere::Sphere;
-
 mod material;
 use crate::material::*;
 
@@ -40,7 +34,7 @@ fn pixel_from_color(color: Color) -> Rgb<u8> {
     ])
 }
 
-fn ray_color(r: &Ray, world: &dyn Hittable, depth: u32) -> Color {
+fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::new();
@@ -71,27 +65,31 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let material_ground = Lambertian::new(Color::from_array([0.8, 0.8, 0.0]));
-    let material_center = Lambertian::new(Color::from_array([0.1, 0.2, 0.5]));
-    let material_left = Dielectric::new(1.5);
-    let material_right = Metal::new(Color::from_array([0.8, 0.6, 0.2]), 1.0);
+    let material_ground = Material::new_lambertian(Color::from_array([0.8, 0.8, 0.0]));
+    let material_center = Material::new_lambertian(Color::from_array([0.1, 0.2, 0.5]));
+    let material_left = Material::new_dielectric(1.5);
+    let material_right = Material::new_metal(Color::from_array([0.8, 0.6, 0.2]), 1.0);
 
-    let sphere_ground = Sphere::new(
+    let sphere_ground = Hittable::new_sphere(
         Point::from_array([0.0, -100.5, -1.0]),
         100.0,
-        &material_ground,
+        material_ground,
     );
-    let sphere_center = Sphere::new(Point::from_array([0.0, 0.0, -1.0]), 0.5, &material_center);
-    let sphere_left = Sphere::new(Point::from_array([-1.0, 0.0, -1.0]), 0.5, &material_left);
-    let sphere_left_inner = Sphere::new(Point::from_array([-1.0, 0.0, -1.0]), -0.4, &material_left);
-    let sphere_right = Sphere::new(Point::from_array([1.0, 0.0, -1.0]), 0.5, &material_right);
+    let sphere_center =
+        Hittable::new_sphere(Point::from_array([0.0, 0.0, -1.0]), 0.5, material_center);
+    let sphere_left =
+        Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), 0.5, material_left);
+    let sphere_left_inner =
+        Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), -0.4, material_left);
+    let sphere_right =
+        Hittable::new_sphere(Point::from_array([1.0, 0.0, -1.0]), 0.5, material_right);
 
-    let world = HittableList(vec![
-        &sphere_ground,
-        &sphere_center,
-        &sphere_left,
-        &sphere_left_inner,
-        &sphere_right,
+    let world = Hittable::List(vec![
+        sphere_ground,
+        sphere_center,
+        sphere_left,
+        sphere_left_inner,
+        sphere_right,
     ]);
 
     // Camera
