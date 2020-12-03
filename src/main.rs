@@ -2,7 +2,9 @@ extern crate image;
 use image::ImageBuffer;
 use image::Rgb;
 use image::RgbImage;
+use rand::rngs::StdRng;
 use rand::Rng;
+use rand::SeedableRng;
 use rayon::prelude::*;
 use std::time::Instant;
 
@@ -62,14 +64,14 @@ fn random_scene() -> Hittable {
         Material::new_lambertian(Color::from_array([0.5, 0.5, 0.5])),
     )];
 
-    let mut rng = rand::thread_rng();
+    let mut rng = StdRng::seed_from_u64(5);
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rand::random::<f64>();
+            let choose_mat = rng.gen::<f64>();
             let center = Point::from_array([
-                a as f64 + 0.9 * rand::random::<f64>(),
+                a as f64 + 0.9 * rng.gen::<f64>(),
                 0.2,
-                b as f64 + 0.9 * rand::random::<f64>(),
+                b as f64 + 0.9 * rng.gen::<f64>(),
             ]);
 
             if (center - Point::from_array([4.0, 0.2, 0.0])).length() > 0.9 {
