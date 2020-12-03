@@ -35,8 +35,27 @@ pub struct Sphere {
 }
 
 #[derive(Clone)]
+pub struct MovingSphere {
+    center_start: Point,
+    center_end: Point,
+    time_start: f64,
+    time_end: f64,
+    radius: f64,
+    material: Material,
+}
+
+impl MovingSphere {
+    fn center(&self, time: f64) -> Point {
+        self.center_start
+            + ((time - self.time_start) / (self.time_end - self.time_start))
+                * (self.center_end - self.center_start)
+    }
+}
+
+#[derive(Clone)]
 pub enum Hittable {
     Sphere(Sphere),
+    MovingSphere(MovingSphere),
     List(Vec<Hittable>),
 }
 
@@ -44,6 +63,23 @@ impl Hittable {
     pub fn new_sphere(center: Point, radius: f64, material: Material) -> Self {
         Self::Sphere(Sphere {
             center: center,
+            radius: radius,
+            material: material,
+        })
+    }
+    pub fn new_moving_sphere(
+        center_start: Point,
+        center_end: Point,
+        time_start: f64,
+        time_end: f64,
+        radius: f64,
+        material: Material,
+    ) -> Self {
+        Self::MovingSphere(MovingSphere {
+            center_start: center_start,
+            center_end: center_end,
+            time_start: time_start,
+            time_end: time_end,
             radius: radius,
             material: material,
         })
@@ -73,6 +109,30 @@ impl Hittable {
 
                 let p = r.at(root);
                 let outward_normal = (p - sphere.center) / sphere.radius;
+                Some(HitRecord::new(r, p, root, outward_normal, sphere.material))
+            }
+            Hittable::MovingSphere(ref sphere) => {
+                let oc = r.origin - sphere.center(r.time);
+                let a = r.direction.sqrlen();
+                let half_b = oc.dot(r.direction);
+                let c = oc.sqrlen() - sphere.radius * sphere.radius;
+
+                let discriminant = half_b * half_b - a * c;
+                if discriminant < 0.0 {
+                    return None;
+                }
+                let sqrtd = discriminant.sqrt();
+                // Find the nearest root that lies in the acceptable range.
+                let mut root = (-half_b - sqrtd) / a;
+                if root < t_min || root > t_max {
+                    root = (-half_b + sqrtd) / a;
+                    if root < t_min || root > t_max {
+                        return None;
+                    }
+                }
+
+                let p = r.at(root);
+                let outward_normal = (p - sphere.center(r.time)) / sphere.radius;
                 Some(HitRecord::new(r, p, root, outward_normal, sphere.material))
             }
             Hittable::List(ref list) => {

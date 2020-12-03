@@ -1,6 +1,9 @@
 use crate::alias::*;
 use crate::ray::*;
 
+use rand;
+use rand::Rng;
+
 pub struct Camera {
     origin: Point,
     lower_left_corner: Point,
@@ -11,6 +14,8 @@ pub struct Camera {
     #[allow(dead_code)]
     w: Vector,
     lens_radius: f64,
+    time_open: f64,
+    time_close: f64,
 }
 
 impl Camera {
@@ -27,6 +32,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        time_open: f64,
+        time_close: f64,
     ) -> Self {
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
@@ -49,17 +56,18 @@ impl Camera {
             v: v,
             w: w,
             lens_radius: aperture / 2.0,
+            time_open: time_open,
+            time_close: time_close,
         }
     }
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd[0] + self.v * rd[1];
-        Ray {
-            origin: self.origin + offset,
-            direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
-                - self.origin
-                - offset,
-        }
+        Ray::new(
+            self.origin + offset,
+            self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+            rand::thread_rng().gen_range(self.time_open, self.time_close),
+        )
     }
 }

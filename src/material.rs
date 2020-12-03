@@ -48,7 +48,10 @@ impl Material {
                     scatter_direction = hit.normal;
                 }
 
-                Some((lambertian.albedo, Ray::new(hit.p, scatter_direction)))
+                Some((
+                    lambertian.albedo,
+                    Ray::new(hit.p, scatter_direction, r.time),
+                ))
             }
             Material::Dielectric(ref dielectric) => {
                 let refraction_ratio = if hit.front_face {
@@ -69,7 +72,7 @@ impl Material {
                 };
                 Some((
                     Color::from_array([1.0, 1.0, 1.0]),
-                    Ray::new(hit.p, direction),
+                    Ray::new(hit.p, direction, r.time),
                 ))
             }
             Material::Metal(ref metal) => {
@@ -79,7 +82,7 @@ impl Material {
                     return None;
                 }
 
-                Some((metal.albedo, Ray::new(hit.p, direction)))
+                Some((metal.albedo, Ray::new(hit.p, direction, r.time)))
             }
         }
     }

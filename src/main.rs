@@ -92,7 +92,14 @@ fn random_scene() -> Hittable {
                     // glass
                     Material::new_dielectric(1.5)
                 };
-                hittables.push(Hittable::new_sphere(center, 0.2, sphere_material));
+
+                let hittable = if choose_mat < 0.8 {
+                    let center2 = center + Vector::from_array([0.0, rng.gen_range(0.0, 0.5), 0.0]);
+                    Hittable::new_moving_sphere(center, center2, 0.0, 1.0, 0.2, sphere_material)
+                } else {
+                    Hittable::new_sphere(center, 0.2, sphere_material)
+                };
+                hittables.push(hittable);
             }
         }
     }
@@ -172,6 +179,8 @@ fn main() {
         aspect_ratio,
         aperture,
         dist_to_focus,
+        0.0,
+        1.0,
     );
 
     let mut image: RgbImage = ImageBuffer::new(image_width, image_height);
