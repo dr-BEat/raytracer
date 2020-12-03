@@ -198,6 +198,6 @@ fn main() {
         image.put_pixel(pixel.0 .0, pixel.0 .1, pixel.1);
     }
     println!("Rendered in {} seconds", now.elapsed().as_secs_f32());
-    image.save("image.png").unwrap();
+    image.save("renders/image.png").unwrap();
     println!("Created img.png");
 }
