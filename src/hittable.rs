@@ -1,6 +1,9 @@
+use crate::aabb::AxisAlignedBoundingBox;
 use crate::alias::*;
 use crate::material::*;
 use crate::ray::*;
+use rand::prelude::*;
+use std::mem;
 
 pub struct HitRecord {
     pub p: Point,
@@ -53,10 +56,19 @@ impl MovingSphere {
 }
 
 #[derive(Clone)]
+pub struct BvhNode {
+    left: Box<Hittable>,
+    right: Box<Hittable>,
+    bounding_box: AxisAlignedBoundingBox,
+}
+
+#[derive(Clone)]
 pub enum Hittable {
     Sphere(Sphere),
     MovingSphere(MovingSphere),
     List(Vec<Hittable>),
+    Bvh(BvhNode),
+    Empty,
 }
 
 impl Hittable {
@@ -67,6 +79,7 @@ impl Hittable {
             material: material,
         })
     }
+
     pub fn new_moving_sphere(
         center_start: Point,
         center_end: Point,
@@ -82,6 +95,55 @@ impl Hittable {
             time_end: time_end,
             radius: radius,
             material: material,
+        })
+    }
+
+    pub fn new_bvh(hittables: &mut [Hittable], time_start: f64, time_end: f64) -> Self {
+        if hittables.len() >= 2 {
+            let axis = rand::thread_rng().gen_range(0, 3);
+            let compare = |a: &Hittable, b: &Hittable| {
+                a.bounding_box(time_start, time_end)
+                    .unwrap()
+                    .compare(&b.bounding_box(time_start, time_end).unwrap(), axis)
+            };
+            hittables.sort_by(compare);
+        }
+
+        match hittables {
+            [] => Hittable::Empty,
+            [hittable] => mem::replace(hittable, Hittable::Empty),
+            [left, right] => Hittable::new_bvh_from_left_right(
+                mem::replace(left, Hittable::Empty),
+                mem::replace(right, Hittable::Empty),
+                time_start,
+                time_end,
+            ),
+            _ => {
+                let (left, right) = hittables.split_at_mut(hittables.len() / 2);
+                Hittable::new_bvh_from_left_right(
+                    Hittable::new_bvh(left, time_start, time_end),
+                    Hittable::new_bvh(right, time_start, time_end),
+                    time_start,
+                    time_end,
+                )
+            }
+        }
+    }
+
+    fn new_bvh_from_left_right(
+        left: Hittable,
+        right: Hittable,
+        time_start: f64,
+        time_end: f64,
+    ) -> Self {
+        let bounding_box = left
+            .bounding_box(time_start, time_end)
+            .unwrap()
+            .surrounding_box(&right.bounding_box(time_start, time_end).unwrap());
+        Self::Bvh(BvhNode {
+            left: Box::new(left),
+            right: Box::new(right),
+            bounding_box: bounding_box,
         })
     }
 
@@ -148,6 +210,57 @@ impl Hittable {
                 }
                 record
             }
+            Hittable::Bvh(ref node) => {
+                if !node.bounding_box.hit(r, t_min, t_max) {
+                    return None;
+                }
+
+                return match node.left.hit(r, t_min, t_max) {
+                    Some(left_record) => Some(match node.right.hit(r, t_min, left_record.t) {
+                        Some(right_record) if right_record.t < left_record.t => right_record,
+                        _ => left_record,
+                    }),
+                    _ => node.right.hit(r, t_min, t_max),
+                };
+            }
+            Hittable::Empty => None,
+        }
+    }
+
+    pub fn bounding_box(&self, time_start: f64, time_end: f64) -> Option<AxisAlignedBoundingBox> {
+        match *self {
+            Hittable::Sphere(ref sphere) => Some(AxisAlignedBoundingBox::new(
+                sphere.center - Vector::from_array([sphere.radius.abs(); 3]),
+                sphere.center + Vector::from_array([sphere.radius.abs(); 3]),
+            )),
+            Hittable::MovingSphere(ref sphere) => {
+                let box0 = AxisAlignedBoundingBox::new(
+                    sphere.center(time_start) - Vector::from_array([sphere.radius.abs(); 3]),
+                    sphere.center(time_start) + Vector::from_array([sphere.radius.abs(); 3]),
+                );
+                let box1 = AxisAlignedBoundingBox::new(
+                    sphere.center(time_end) - Vector::from_array([sphere.radius.abs(); 3]),
+                    sphere.center(time_end) + Vector::from_array([sphere.radius.abs(); 3]),
+                );
+                Some(box0.surrounding_box(&box1))
+            }
+            Hittable::List(ref list) => {
+                let mut result: Option<AxisAlignedBoundingBox> = None;
+                for item in list {
+                    if let Some(item_box) = item.bounding_box(time_start, time_end) {
+                        result = Some(if let Some(result_box) = result {
+                            result_box.surrounding_box(&item_box)
+                        } else {
+                            item_box
+                        })
+                    } else {
+                        return None;
+                    }
+                }
+                result
+            }
+            Hittable::Bvh(ref node) => Some(node.bounding_box.clone()),
+            Hittable::Empty => None,
         }
     }
 }

@@ -23,6 +23,8 @@ use hittable::*;
 mod material;
 use crate::material::*;
 
+mod aabb;
+
 fn pixel_from_color(color: Color) -> Rgb<u8> {
     // gamma-correct for gamma=2.0
     let r = color[0].sqrt();
@@ -57,7 +59,7 @@ fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
     (1.0 - t) * Color::from_array([1.0, 1.0, 1.0]) + t * Color::from_array([0.5, 0.7, 1.0])
 }
 
-fn random_scene() -> Hittable {
+fn random_scene() -> Vec<Hittable> {
     let mut hittables: Vec<Hittable> = vec![Hittable::new_sphere(
         Point::from_array([0.0, -1000.0, 0.0]),
         1000.0,
@@ -122,7 +124,7 @@ fn random_scene() -> Hittable {
         Material::new_metal(Color::from_array([0.7, 0.6, 0.5]), 0.0),
     ));
 
-    Hittable::List(hittables)
+    hittables
 }
 
 fn main() {
@@ -155,15 +157,16 @@ fn main() {
     let sphere_right =
         Hittable::new_sphere(Point::from_array([1.0, 0.0, -1.0]), 0.5, material_right);
 
-    let world = Hittable::List(vec![
+    let mut world = vec![
         sphere_ground,
         sphere_center,
         sphere_left,
         sphere_left_inner,
         sphere_right,
-    ]);
+    ];
 
-    let world = random_scene();
+    let mut world = random_scene();
+    let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
 
     // Camera
     let lookfrom = Point::from_array([13.0, 2.0, 3.0]);
