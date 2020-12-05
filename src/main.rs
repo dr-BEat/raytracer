@@ -186,6 +186,14 @@ fn random_scene() -> Vec<Hittable> {
     hittables
 }
 
+fn earth() -> Vec<Hittable> {
+    let earth_texture = Texture::new_image("assets/earthmap.jpg").unwrap();
+    let earth_surface = Material::new_lambertian_with_texture(earth_texture);
+    let globe = Hittable::new_sphere(Point::new(), 2.0, earth_surface);
+
+    vec![globe]
+}
+
 fn main() {
     // Image
     let aspect_ratio = 3.0 / 2.0;
@@ -197,9 +205,10 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let mut world = match 1 {
+    let mut world = match 2 {
         0 => random_scene(),
         1 => two_spheres(),
+        2 => earth(),
         _ => small_scene(),
     };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
