@@ -62,6 +62,58 @@ fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
     (1.0 - t) * Color::from_array([1.0, 1.0, 1.0]) + t * Color::from_array([0.5, 0.7, 1.0])
 }
 
+fn two_spheres() -> Vec<Hittable> {
+    let checker = Texture::new_checker_color(
+        Color::from_array([0.2, 0.3, 0.1]),
+        Color::from_array([0.9, 0.9, 0.9]),
+    );
+
+    vec![
+        Hittable::new_sphere(
+            Point::from_array([0.0, -10.0, 0.0]),
+            10.0,
+            Material::new_lambertian_with_texture(checker.clone()),
+        ),
+        Hittable::new_sphere(
+            Point::from_array([0.0, 10.0, 0.0]),
+            10.0,
+            Material::new_lambertian_with_texture(checker.clone()),
+        ),
+    ]
+}
+
+fn small_scene() -> Vec<Hittable> {
+    let material_ground = Material::new_lambertian(Color::from_array([0.8, 0.8, 0.0]));
+    let material_center = Material::new_lambertian(Color::from_array([0.1, 0.2, 0.5]));
+    let material_left = Material::new_dielectric(1.5);
+    let material_right = Material::new_metal(Color::from_array([0.8, 0.6, 0.2]), 1.0);
+
+    let sphere_ground = Hittable::new_sphere(
+        Point::from_array([0.0, -100.5, -1.0]),
+        100.0,
+        material_ground,
+    );
+    let sphere_center =
+        Hittable::new_sphere(Point::from_array([0.0, 0.0, -1.0]), 0.5, material_center);
+    let sphere_left = Hittable::new_sphere(
+        Point::from_array([-1.0, 0.0, -1.0]),
+        0.5,
+        material_left.clone(),
+    );
+    let sphere_left_inner =
+        Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), -0.4, material_left);
+    let sphere_right =
+        Hittable::new_sphere(Point::from_array([1.0, 0.0, -1.0]), 0.5, material_right);
+
+    vec![
+        sphere_ground,
+        sphere_center,
+        sphere_left,
+        sphere_left_inner,
+        sphere_right,
+    ]
+}
+
 fn random_scene() -> Vec<Hittable> {
     let checker = Texture::new_checker_color(
         Color::from_array([0.2, 0.3, 0.1]),
@@ -145,37 +197,11 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let material_ground = Material::new_lambertian(Color::from_array([0.8, 0.8, 0.0]));
-    let material_center = Material::new_lambertian(Color::from_array([0.1, 0.2, 0.5]));
-    let material_left = Material::new_dielectric(1.5);
-    let material_right = Material::new_metal(Color::from_array([0.8, 0.6, 0.2]), 1.0);
-
-    let sphere_ground = Hittable::new_sphere(
-        Point::from_array([0.0, -100.5, -1.0]),
-        100.0,
-        material_ground,
-    );
-    let sphere_center =
-        Hittable::new_sphere(Point::from_array([0.0, 0.0, -1.0]), 0.5, material_center);
-    let sphere_left = Hittable::new_sphere(
-        Point::from_array([-1.0, 0.0, -1.0]),
-        0.5,
-        material_left.clone(),
-    );
-    let sphere_left_inner =
-        Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), -0.4, material_left);
-    let sphere_right =
-        Hittable::new_sphere(Point::from_array([1.0, 0.0, -1.0]), 0.5, material_right);
-
-    let mut world = vec![
-        sphere_ground,
-        sphere_center,
-        sphere_left,
-        sphere_left_inner,
-        sphere_right,
-    ];
-
-    let mut world = random_scene();
+    let mut world = match 1 {
+        0 => random_scene(),
+        1 => two_spheres(),
+        _ => small_scene(),
+    };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
 
     // Camera
