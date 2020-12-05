@@ -5,17 +5,17 @@ use crate::ray::*;
 use rand::prelude::*;
 use std::mem;
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub p: Point,
     pub normal: Vector,
     pub t: f64,
     pub u: f64,
     pub v: f64,
     pub front_face: bool,
-    pub material: Material,
+    pub material: &'a Material,
 }
 
-impl HitRecord {
+impl<'a> HitRecord<'a> {
     pub fn new(
         r: &Ray,
         p: Point,
@@ -23,7 +23,7 @@ impl HitRecord {
         u: f64,
         v: f64,
         outward_normal: Vector,
-        material: Material,
+        material: &'a Material,
     ) -> Self {
         let front_face = r.direction.dot(outward_normal) < 0.0;
         Self {
@@ -191,7 +191,7 @@ impl Hittable {
                     u,
                     v,
                     outward_normal,
-                    sphere.material.clone(),
+                    &sphere.material,
                 ))
             }
             Hittable::MovingSphere(ref sphere) => {
@@ -224,7 +224,7 @@ impl Hittable {
                     u,
                     v,
                     outward_normal,
-                    sphere.material.clone(),
+                    &sphere.material,
                 ))
             }
             Hittable::List(ref list) => {
