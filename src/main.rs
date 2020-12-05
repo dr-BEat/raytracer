@@ -25,6 +25,9 @@ use crate::material::*;
 
 mod aabb;
 
+mod texture;
+use crate::texture::Texture;
+
 fn pixel_from_color(color: Color) -> Rgb<u8> {
     // gamma-correct for gamma=2.0
     let r = color[0].sqrt();
@@ -60,10 +63,14 @@ fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
 }
 
 fn random_scene() -> Vec<Hittable> {
+    let checker = Texture::new_checker_color(
+        Color::from_array([0.2, 0.3, 0.1]),
+        Color::from_array([0.9, 0.9, 0.9]),
+    );
     let mut hittables: Vec<Hittable> = vec![Hittable::new_sphere(
         Point::from_array([0.0, -1000.0, 0.0]),
         1000.0,
-        Material::new_lambertian(Color::from_array([0.5, 0.5, 0.5])),
+        Material::new_lambertian_with_texture(checker),
     )];
 
     let mut rng = StdRng::seed_from_u64(5);
@@ -150,8 +157,11 @@ fn main() {
     );
     let sphere_center =
         Hittable::new_sphere(Point::from_array([0.0, 0.0, -1.0]), 0.5, material_center);
-    let sphere_left =
-        Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), 0.5, material_left);
+    let sphere_left = Hittable::new_sphere(
+        Point::from_array([-1.0, 0.0, -1.0]),
+        0.5,
+        material_left.clone(),
+    );
     let sphere_left_inner =
         Hittable::new_sphere(Point::from_array([-1.0, 0.0, -1.0]), -0.4, material_left);
     let sphere_right =

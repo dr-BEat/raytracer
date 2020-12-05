@@ -1,24 +1,25 @@
 use crate::alias::*;
 use crate::hittable::*;
 use crate::ray::*;
+use crate::texture::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Lambertian {
-    pub albedo: Color,
+    pub texture: Texture,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Dielectric {
     pub ir: f64, // Index of Refraction
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Metal {
     pub albedo: Color,
     pub fuzz: f64,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum Material {
     Lambertian(Lambertian),
     Dielectric(Dielectric),
@@ -27,8 +28,15 @@ pub enum Material {
 
 impl Material {
     pub fn new_lambertian(albedo: Color) -> Self {
-        Material::Lambertian(Lambertian { albedo: albedo })
+        Material::Lambertian(Lambertian {
+            texture: Texture::Solid(albedo),
+        })
     }
+
+    pub fn new_lambertian_with_texture(texture: Texture) -> Self {
+        Material::Lambertian(Lambertian { texture: texture })
+    }
+
     pub fn new_dielectric(ir: f64) -> Self {
         Material::Dielectric(Dielectric { ir: ir })
     }
@@ -49,7 +57,7 @@ impl Material {
                 }
 
                 Some((
-                    lambertian.albedo,
+                    lambertian.texture.value(hit.u, hit.v, &hit.p),
                     Ray::new(hit.p, scatter_direction, r.time),
                 ))
             }

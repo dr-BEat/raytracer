@@ -9,16 +9,28 @@ pub struct HitRecord {
     pub p: Point,
     pub normal: Vector,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
     pub material: Material,
 }
 
 impl HitRecord {
-    pub fn new(r: &Ray, p: Point, t: f64, outward_normal: Vector, material: Material) -> Self {
+    pub fn new(
+        r: &Ray,
+        p: Point,
+        t: f64,
+        u: f64,
+        v: f64,
+        outward_normal: Vector,
+        material: Material,
+    ) -> Self {
         let front_face = r.direction.dot(outward_normal) < 0.0;
         Self {
             p: p,
             t: t,
+            u: u,
+            v: v,
             front_face: front_face,
             normal: if front_face {
                 outward_normal
@@ -171,7 +183,16 @@ impl Hittable {
 
                 let p = r.at(root);
                 let outward_normal = (p - sphere.center) / sphere.radius;
-                Some(HitRecord::new(r, p, root, outward_normal, sphere.material))
+                let (u, v) = get_sphere_uv(&outward_normal);
+                Some(HitRecord::new(
+                    r,
+                    p,
+                    root,
+                    u,
+                    v,
+                    outward_normal,
+                    sphere.material.clone(),
+                ))
             }
             Hittable::MovingSphere(ref sphere) => {
                 let oc = r.origin - sphere.center(r.time);
@@ -195,7 +216,16 @@ impl Hittable {
 
                 let p = r.at(root);
                 let outward_normal = (p - sphere.center(r.time)) / sphere.radius;
-                Some(HitRecord::new(r, p, root, outward_normal, sphere.material))
+                let (u, v) = get_sphere_uv(&outward_normal);
+                Some(HitRecord::new(
+                    r,
+                    p,
+                    root,
+                    u,
+                    v,
+                    outward_normal,
+                    sphere.material.clone(),
+                ))
             }
             Hittable::List(ref list) => {
                 let mut record = None;
@@ -263,4 +293,23 @@ impl Hittable {
             Hittable::Empty => None,
         }
     }
+}
+
+/// Calculate the UV coordinates on a sphere.
+/// u: returned value [0,1] of angle around the Y axis from X=-1.
+/// v: returned value [0,1] of angle from Y=-1 to Y=+1.
+///     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+///     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+///     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+///
+/// # Arguments
+///
+/// * `p` - A given point on the sphere of radius one, centered at the origin.
+fn get_sphere_uv(p: &Point) -> (f64, f64) {
+    let theta = (-p[1]).acos();
+    let phi = (-p[2]).atan2(p[0]) + std::f64::consts::PI;
+
+    let u = phi / (2.0 * std::f64::consts::PI);
+    let v = theta / std::f64::consts::PI;
+    (u, v)
 }
