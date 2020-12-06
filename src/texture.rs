@@ -32,7 +32,8 @@ impl Texture {
         match *self {
             Self::Solid(ref color) => *color,
             Self::Checker((ref odd, ref even)) => {
-                let sines = (10.0 * p[0]).sin() * (10.0 * p[1]).sin() * (10.0 * p[2]).sin();
+                let scale = 10.0;
+                let sines = (scale * p[0]).sin() * (scale * p[1]).sin() * (scale * p[2]).sin();
                 if sines < 0.0 {
                     odd.value(u, v, p)
                 } else {
