@@ -42,7 +42,7 @@ fn pixel_from_color(color: Color) -> Rgb<u8> {
     ])
 }
 
-fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
+fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::new();
@@ -50,16 +50,14 @@ fn ray_color(r: &Ray, world: &Hittable, depth: u32) -> Color {
 
     let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
+        let emitted = hit.material.emit(hit.u, hit.v, &hit.p);
         if let Some((attenuation, scattered)) = hit.material.scatter(r, &hit) {
-            return attenuation * ray_color(&scattered, world, depth - 1);
+            return emitted + attenuation * ray_color(&scattered, background, world, depth - 1);
         }
-        return Color::new();
+        return emitted;
     }
 
-    // Background
-    let unit_direction = r.direction.normalize();
-    let t = 0.5 * (unit_direction[1] + 1.0);
-    (1.0 - t) * Color::from_array([1.0, 1.0, 1.0]) + t * Color::from_array([0.5, 0.7, 1.0])
+    background
 }
 
 fn two_spheres() -> Vec<Hittable> {
@@ -194,6 +192,31 @@ fn earth() -> Vec<Hittable> {
     vec![globe]
 }
 
+fn simple_light() -> Vec<Hittable> {
+    vec![
+        Hittable::new_sphere(
+            Point::from_array([0.0, -1000.0, 0.0]),
+            1000.0,
+            Material::new_lambertian(Color::from_array([0.8, 0.8, 0.0])),
+        ),
+        Hittable::new_sphere(
+            Point::from_array([0.0, 2.0, 0.0]),
+            2.0,
+            Material::new_lambertian(Color::from_array([0.8, 0.0, 0.0])),
+        ),
+        Hittable::new_sphere(
+            Point::from_array([0.0, 2.0, 3.0]),
+            1.0,
+            Material::new_diffuse_light(Color::from_array([4.0, 4.0, 4.0])),
+        ),
+        Hittable::new_sphere(
+            Point::from_array([0.5, 0.3, 3.0]),
+            0.2,
+            Material::new_dielectric(1.5),
+        ),
+    ]
+}
+
 fn main() {
     // Image
     let aspect_ratio = 3.0 / 2.0;
@@ -205,10 +228,11 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let mut world = match 2 {
+    let mut world = match 3 {
         0 => random_scene(),
         1 => two_spheres(),
         2 => earth(),
+        3 => simple_light(),
         _ => small_scene(),
     };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
@@ -219,6 +243,7 @@ fn main() {
     let vup = Vector::from_array([0.0, 1.0, 0.0]);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
+    let background = Color::from_array([0.50, 0.70, 1.00]);
     let cam = Camera::new(
         lookfrom,
         lookat,
@@ -244,7 +269,7 @@ fn main() {
                 let v = ((image_height - y - 1) as f64 + rand::random::<f64>())
                     / (image_height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, &world, max_depth);
+                pixel_color += ray_color(&r, background, &world, max_depth);
             }
             pixel_color /= samples_per_pixel as f64;
             ((*x, *y), pixel_from_color(pixel_color))

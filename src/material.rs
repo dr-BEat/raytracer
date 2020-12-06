@@ -4,11 +4,6 @@ use crate::ray::*;
 use crate::texture::*;
 
 #[derive(Clone)]
-pub struct Lambertian {
-    pub texture: Texture,
-}
-
-#[derive(Clone)]
 pub struct Dielectric {
     pub ir: f64, // Index of Refraction
 }
@@ -21,25 +16,25 @@ pub struct Metal {
 
 #[derive(Clone)]
 pub enum Material {
-    Lambertian(Lambertian),
+    Lambertian(Texture),
     Dielectric(Dielectric),
     Metal(Metal),
+    DiffuseLight(Texture),
 }
 
 impl Material {
     pub fn new_lambertian(albedo: Color) -> Self {
-        Material::Lambertian(Lambertian {
-            texture: Texture::Solid(albedo),
-        })
+        Material::Lambertian(Texture::Solid(albedo))
     }
 
     pub fn new_lambertian_with_texture(texture: Texture) -> Self {
-        Material::Lambertian(Lambertian { texture: texture })
+        Material::Lambertian(texture)
     }
 
     pub fn new_dielectric(ir: f64) -> Self {
         Material::Dielectric(Dielectric { ir: ir })
     }
+
     pub fn new_metal(albedo: Color, fuzz: f64) -> Self {
         Material::Metal(Metal {
             albedo: albedo,
@@ -47,9 +42,13 @@ impl Material {
         })
     }
 
+    pub fn new_diffuse_light(emit: Color) -> Self {
+        Self::DiffuseLight(Texture::Solid(emit))
+    }
+
     pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray)> {
         match *self {
-            Material::Lambertian(ref lambertian) => {
+            Self::Lambertian(ref texture) => {
                 let mut scatter_direction = hit.normal + random_unit_vector();
 
                 if near_zero(&scatter_direction) {
@@ -57,11 +56,11 @@ impl Material {
                 }
 
                 Some((
-                    lambertian.texture.value(hit.u, hit.v, &hit.p),
+                    texture.value(hit.u, hit.v, &hit.p),
                     Ray::new(hit.p, scatter_direction, r.time),
                 ))
             }
-            Material::Dielectric(ref dielectric) => {
+            Self::Dielectric(ref dielectric) => {
                 let refraction_ratio = if hit.front_face {
                     1.0 / dielectric.ir
                 } else {
@@ -83,7 +82,7 @@ impl Material {
                     Ray::new(hit.p, direction, r.time),
                 ))
             }
-            Material::Metal(ref metal) => {
+            Self::Metal(ref metal) => {
                 let reflected = reflect(&r.direction.normalize(), &hit.normal);
                 let direction = reflected + metal.fuzz * random_in_unit_sphere();
                 if direction.dot(hit.normal) <= 0.0 {
@@ -92,6 +91,14 @@ impl Material {
 
                 Some((metal.albedo, Ray::new(hit.p, direction, r.time)))
             }
+            Self::DiffuseLight(_) => None,
+        }
+    }
+
+    pub fn emit(&self, u: f64, v: f64, p: &Point) -> Color {
+        match *self {
+            Self::DiffuseLight(ref texture) => texture.value(u, v, p),
+            _ => Color::new(),
         }
     }
 }
