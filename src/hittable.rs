@@ -43,6 +43,13 @@ impl<'a> HitRecord<'a> {
 }
 
 #[derive(Clone)]
+pub struct Cube {
+    p0: Point,
+    p1: Point,
+    material: Material,
+}
+
+#[derive(Clone)]
 pub struct Sphere {
     center: Point,
     radius: f64,
@@ -76,6 +83,7 @@ pub struct BvhNode {
 
 #[derive(Clone)]
 pub enum Hittable {
+    Cube(Cube),
     Sphere(Sphere),
     MovingSphere(MovingSphere),
     List(Vec<Hittable>),
@@ -84,6 +92,14 @@ pub enum Hittable {
 }
 
 impl Hittable {
+    pub fn new_cube(p0: Point, p1: Point, material: Material) -> Self {
+        Self::Cube(Cube {
+            p0: p0,
+            p1: p1,
+            material: material,
+        })
+    }
+
     pub fn new_sphere(center: Point, radius: f64, material: Material) -> Self {
         Self::Sphere(Sphere {
             center: center,
@@ -161,7 +177,38 @@ impl Hittable {
 
     pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         match *self {
-            Hittable::Sphere(ref sphere) => {
+            Self::Cube(ref cube) => {
+                let mut t_min = t_min;
+                let mut t_max = t_max;
+                for i in 0..3 {
+                    let inv_d = 1.0 / r.direction[i];
+                    // Calculate the time when the ray is in the region for this axis.
+                    let mut t0 = (cube.p0[i] - r.origin[i]) * inv_d;
+                    let mut t1 = (cube.p1[i] - r.origin[i]) * inv_d;
+                    if inv_d < 0.0 {
+                        mem::swap(&mut t0, &mut t1);
+                    }
+                    t_min = t0.max(t_min);
+                    t_max = t1.min(t_max);
+                    // if t_max ever gets smaller then t_min we do not have a hit.
+                    if t_max <= t_min {
+                        return None;
+                    }
+                }
+                let t = t_min;
+                let p = r.at(t);
+
+                Some(HitRecord::new(
+                    r,
+                    p,
+                    t,
+                    0.0,
+                    0.0,
+                    Vector::new(),
+                    &cube.material,
+                ))
+            }
+            Self::Sphere(ref sphere) => {
                 let oc = r.origin - sphere.center;
                 let a = r.direction.sqrlen();
                 let half_b = oc.dot(r.direction);
@@ -194,7 +241,7 @@ impl Hittable {
                     &sphere.material,
                 ))
             }
-            Hittable::MovingSphere(ref sphere) => {
+            Self::MovingSphere(ref sphere) => {
                 let oc = r.origin - sphere.center(r.time);
                 let a = r.direction.sqrlen();
                 let half_b = oc.dot(r.direction);
@@ -227,7 +274,7 @@ impl Hittable {
                     &sphere.material,
                 ))
             }
-            Hittable::List(ref list) => {
+            Self::List(ref list) => {
                 let mut record = None;
                 let mut closest_so_far = t_max;
                 for hittable in list {
@@ -240,7 +287,7 @@ impl Hittable {
                 }
                 record
             }
-            Hittable::Bvh(ref node) => {
+            Self::Bvh(ref node) => {
                 if !node.bounding_box.hit(r, t_min, t_max) {
                     return None;
                 }
@@ -253,17 +300,18 @@ impl Hittable {
                     _ => node.right.hit(r, t_min, t_max),
                 };
             }
-            Hittable::Empty => None,
+            Self::Empty => None,
         }
     }
 
     pub fn bounding_box(&self, time_start: f64, time_end: f64) -> Option<AxisAlignedBoundingBox> {
         match *self {
-            Hittable::Sphere(ref sphere) => Some(AxisAlignedBoundingBox::new(
+            Self::Cube(ref cube) => Some(AxisAlignedBoundingBox::new(cube.p0, cube.p1)),
+            Self::Sphere(ref sphere) => Some(AxisAlignedBoundingBox::new(
                 sphere.center - Vector::from_array([sphere.radius.abs(); 3]),
                 sphere.center + Vector::from_array([sphere.radius.abs(); 3]),
             )),
-            Hittable::MovingSphere(ref sphere) => {
+            Self::MovingSphere(ref sphere) => {
                 let box0 = AxisAlignedBoundingBox::new(
                     sphere.center(time_start) - Vector::from_array([sphere.radius.abs(); 3]),
                     sphere.center(time_start) + Vector::from_array([sphere.radius.abs(); 3]),
@@ -274,7 +322,7 @@ impl Hittable {
                 );
                 Some(box0.surrounding_box(&box1))
             }
-            Hittable::List(ref list) => {
+            Self::List(ref list) => {
                 let mut result: Option<AxisAlignedBoundingBox> = None;
                 for item in list {
                     if let Some(item_box) = item.bounding_box(time_start, time_end) {
@@ -289,8 +337,8 @@ impl Hittable {
                 }
                 result
             }
-            Hittable::Bvh(ref node) => Some(node.bounding_box.clone()),
-            Hittable::Empty => None,
+            Self::Bvh(ref node) => Some(node.bounding_box.clone()),
+            Self::Empty => None,
         }
     }
 }

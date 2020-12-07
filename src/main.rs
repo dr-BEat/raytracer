@@ -209,8 +209,13 @@ fn simple_light() -> Vec<Hittable> {
             1.0,
             Material::new_diffuse_light(Color::from_array([4.0, 4.0, 4.0])),
         ),
+        Hittable::new_cube(
+            Point::from_array([0.0, 1.0, -1.7]),
+            Point::from_array([4.0, 2.0, -1.6]),
+            Material::new_diffuse_light(Color::from_array([4.0, 4.0, 4.0])),
+        ),
         Hittable::new_sphere(
-            Point::from_array([0.5, 0.3, 3.0]),
+            Point::from_array([2.0, 0.3, 1.0]),
             0.2,
             Material::new_dielectric(1.5),
         ),
