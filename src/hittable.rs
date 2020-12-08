@@ -82,6 +82,12 @@ pub struct ConstantMedium {
 }
 
 #[derive(Clone)]
+pub struct Translate {
+    hittable: Box<Hittable>,
+    offset: Vector,
+}
+
+#[derive(Clone)]
 pub struct BvhNode {
     left: Box<Hittable>,
     right: Box<Hittable>,
@@ -94,6 +100,7 @@ pub enum Hittable {
     Sphere(Sphere),
     MovingSphere(MovingSphere),
     ConstantMedium(ConstantMedium),
+    Translate(Translate),
     List(Vec<Hittable>),
     Bvh(BvhNode),
     Empty,
@@ -345,6 +352,16 @@ impl Hittable {
                     &medium.material,
                 ))
             }
+            Self::Translate(ref translate) => {
+                let moved_ray = Ray::new(r.origin - translate.offset, r.direction, r.time);
+                translate
+                    .hittable
+                    .hit(&moved_ray, t_min, t_max)
+                    .map(|hit| HitRecord {
+                        p: hit.p + translate.offset,
+                        ..hit
+                    })
+            }
             Self::List(ref list) => {
                 let mut record = None;
                 let mut closest_so_far = t_max;
@@ -394,6 +411,10 @@ impl Hittable {
                 Some(box0.surrounding_box(&box1))
             }
             Self::ConstantMedium(ref medium) => medium.boundary.bounding_box(time_start, time_end),
+            Self::Translate(ref translate) => translate
+                .hittable
+                .bounding_box(time_start, time_end)
+                .map(|aabb| aabb.add(translate.offset)),
             Self::List(ref list) => {
                 let mut result: Option<AxisAlignedBoundingBox> = None;
                 for item in list {

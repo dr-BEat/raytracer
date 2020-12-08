@@ -47,6 +47,10 @@ impl AxisAlignedBoundingBox {
         Self::new(minimum, maximum)
     }
 
+    pub fn add(&self, offset: Vector) -> Self {
+        Self::new(self.minimum + offset, self.maximum + offset)
+    }
+
     pub fn compare(&self, other: &Self, axis: usize) -> Ordering {
         self.minimum[axis]
             .partial_cmp(&other.minimum[axis])
