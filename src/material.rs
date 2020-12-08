@@ -20,6 +20,7 @@ pub enum Material {
     Dielectric(Dielectric),
     Metal(Metal),
     DiffuseLight(Texture),
+    Isotropic(Texture),
 }
 
 impl Material {
@@ -44,6 +45,10 @@ impl Material {
 
     pub fn new_diffuse_light(emit: Color) -> Self {
         Self::DiffuseLight(Texture::Solid(emit))
+    }
+
+    pub fn new_isotropic(albedo: Color) -> Self {
+        Self::Isotropic(Texture::Solid(albedo))
     }
 
     pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray)> {
@@ -92,6 +97,10 @@ impl Material {
                 Some((metal.albedo, Ray::new(hit.p, direction, r.time)))
             }
             Self::DiffuseLight(_) => None,
+            Self::Isotropic(ref texture) => Some((
+                texture.value(hit.u, hit.v, &hit.p),
+                Ray::new(hit.p, random_in_unit_sphere(), r.time),
+            )),
         }
     }
 

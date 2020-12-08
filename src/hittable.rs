@@ -75,6 +75,13 @@ impl MovingSphere {
 }
 
 #[derive(Clone)]
+pub struct ConstantMedium {
+    boundary: Box<Hittable>,
+    neg_inv_density: f64,
+    material: Material,
+}
+
+#[derive(Clone)]
 pub struct BvhNode {
     left: Box<Hittable>,
     right: Box<Hittable>,
@@ -86,6 +93,7 @@ pub enum Hittable {
     Cube(Cube),
     Sphere(Sphere),
     MovingSphere(MovingSphere),
+    ConstantMedium(ConstantMedium),
     List(Vec<Hittable>),
     Bvh(BvhNode),
     Empty,
@@ -123,6 +131,14 @@ impl Hittable {
             time_end: time_end,
             radius: radius,
             material: material,
+        })
+    }
+
+    pub fn new_constant_medium(boundary: Hittable, density: f64, color: Color) -> Self {
+        Self::ConstantMedium(ConstantMedium {
+            boundary: Box::new(boundary),
+            neg_inv_density: -(1.0 / density),
+            material: Material::new_isotropic(color),
         })
     }
 
@@ -274,6 +290,61 @@ impl Hittable {
                     &sphere.material,
                 ))
             }
+            Self::ConstantMedium(ref medium) => {
+                // Print occasional samples when debugging. To enable, set enableDebug true.
+                let enable_debug = false;
+                let debugging = enable_debug && rand::random::<f64>() < 0.00001;
+
+                let hit1 = medium.boundary.hit(r, f64::NEG_INFINITY, f64::INFINITY);
+                if hit1.is_none() {
+                    return None;
+                }
+                let mut hit1 = hit1.unwrap();
+
+                let hit2 = medium.boundary.hit(r, hit1.t + 0.0001, f64::INFINITY);
+                if hit2.is_none() {
+                    return None;
+                }
+                let mut hit2 = hit2.unwrap();
+
+                if debugging {
+                    println!("t_min={}, t_max={}", hit1.t, hit2.t);
+                }
+
+                hit1.t = hit1.t.max(t_min);
+                hit2.t = hit2.t.min(t_max);
+
+                if hit1.t >= hit2.t {
+                    return None;
+                }
+
+                hit1.t = hit1.t.max(0.0);
+
+                let ray_length = r.direction.length();
+                let distance_inside_boundary = (hit2.t - hit1.t) * ray_length;
+                let hit_distance = medium.neg_inv_density * rand::random::<f64>().ln();
+
+                if hit_distance > distance_inside_boundary {
+                    return None;
+                }
+
+                let t = hit1.t + hit_distance / ray_length;
+                let p = r.at(t);
+
+                if debugging {
+                    println!("hit_distance = {}\nt = {}\np = {}", hit_distance, t, p);
+                }
+
+                Some(HitRecord::new(
+                    r,
+                    p,
+                    t,
+                    0.0,
+                    0.0,
+                    Vector::from_array([1.0, 0.0, 0.0]), // arbitrary
+                    &medium.material,
+                ))
+            }
             Self::List(ref list) => {
                 let mut record = None;
                 let mut closest_so_far = t_max;
@@ -322,6 +393,7 @@ impl Hittable {
                 );
                 Some(box0.surrounding_box(&box1))
             }
+            Self::ConstantMedium(ref medium) => medium.boundary.bounding_box(time_start, time_end),
             Self::List(ref list) => {
                 let mut result: Option<AxisAlignedBoundingBox> = None;
                 for item in list {

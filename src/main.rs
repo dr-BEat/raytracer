@@ -199,10 +199,14 @@ fn simple_light() -> Vec<Hittable> {
             1000.0,
             Material::new_lambertian(Color::from_array([0.8, 0.8, 0.0])),
         ),
-        Hittable::new_sphere(
-            Point::from_array([0.0, 2.0, 0.0]),
-            2.0,
-            Material::new_lambertian(Color::from_array([0.8, 0.0, 0.0])),
+        Hittable::new_constant_medium(
+            Hittable::new_sphere(
+                Point::from_array([0.0, 2.0, 0.0]),
+                2.0,
+                Material::new_lambertian(Color::from_array([0.8, 0.0, 0.0])),
+            ),
+            0.91,
+            Color::from_array([0.0, 0.0, 0.0]),
         ),
         Hittable::new_sphere(
             Point::from_array([0.0, 2.0, 3.0]),
