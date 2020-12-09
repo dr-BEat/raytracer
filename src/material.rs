@@ -54,9 +54,9 @@ impl Material {
     pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray)> {
         match *self {
             Self::Lambertian(ref texture) => {
-                let mut scatter_direction = hit.normal + random_unit_vector();
+                let mut scatter_direction = hit.normal + Vector::random_unit_vector();
 
-                if near_zero(&scatter_direction) {
+                if scatter_direction.near_zero() {
                     scatter_direction = hit.normal;
                 }
 
@@ -78,9 +78,9 @@ impl Material {
                 let direction = if cannot_refract
                     || reflectance(cos_theta, refraction_ratio) > rand::random()
                 {
-                    reflect(&unit_direction, &hit.normal)
+                    unit_direction.reflect(&hit.normal)
                 } else {
-                    refract(&unit_direction, &hit.normal, refraction_ratio)
+                    unit_direction.refract(&hit.normal, refraction_ratio)
                 };
                 Some((
                     Color::from_array([1.0, 1.0, 1.0]),
@@ -88,8 +88,8 @@ impl Material {
                 ))
             }
             Self::Metal(ref metal) => {
-                let reflected = reflect(&r.direction.normalize(), &hit.normal);
-                let direction = reflected + metal.fuzz * random_in_unit_sphere();
+                let reflected = r.direction.normalize().reflect(&hit.normal);
+                let direction = reflected + metal.fuzz * Point::random_in_unit_sphere();
                 if direction.dot(hit.normal) <= 0.0 {
                     return None;
                 }
@@ -99,7 +99,7 @@ impl Material {
             Self::DiffuseLight(_) => None,
             Self::Isotropic(ref texture) => Some((
                 texture.value(hit.u, hit.v, &hit.p),
-                Ray::new(hit.p, random_in_unit_sphere(), r.time),
+                Ray::new(hit.p, Point::random_in_unit_sphere(), r.time),
             )),
         }
     }

@@ -62,7 +62,7 @@ impl Camera {
     }
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
-        let rd = self.lens_radius * random_in_unit_disk();
+        let rd = self.lens_radius * Point::random_in_unit_disk();
         let offset = self.u * rd[0] + self.v * rd[1];
         Ray::new(
             self.origin + offset,

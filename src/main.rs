@@ -136,7 +136,7 @@ fn random_scene() -> Vec<Hittable> {
             if (center - Point::from_array([4.0, 0.2, 0.0])).length() > 0.9 {
                 let sphere_material = if choose_mat < 0.8 {
                     // diffuse
-                    let albedo = random_vector() * random_vector();
+                    let albedo = Vector::random_vector() * Vector::random_vector();
                     Material::new_lambertian(albedo)
                 } else if choose_mat < 0.95 {
                     // metal
