@@ -11,3 +11,7 @@ image = "0.23.12"
 vecmat = "0.4.2"
 rand = "0.7.3"
 rayon = "1.5"
+
+[dev-dependencies]
+proptest = "0.10.1"
+test-case = "1.0.0"
