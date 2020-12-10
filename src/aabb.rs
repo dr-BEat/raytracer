@@ -5,8 +5,8 @@ use std::mem;
 
 #[derive(Clone)]
 pub struct AxisAlignedBoundingBox {
-    minimum: Point,
-    maximum: Point,
+    pub minimum: Point,
+    pub maximum: Point,
 }
 
 impl AxisAlignedBoundingBox {
@@ -45,10 +45,6 @@ impl AxisAlignedBoundingBox {
             maximum[i] = self.maximum[i].max(other.maximum[i]);
         }
         Self::new(minimum, maximum)
-    }
-
-    pub fn add(&self, offset: Vector) -> Self {
-        Self::new(self.minimum + offset, self.maximum + offset)
     }
 
     pub fn compare(&self, other: &Self, axis: usize) -> Ordering {

@@ -88,6 +88,12 @@ pub struct Translate {
 }
 
 #[derive(Clone)]
+pub struct Rotate {
+    hittable: Box<Hittable>,
+    rotation: Quaternion,
+}
+
+#[derive(Clone)]
 pub struct BvhNode {
     left: Box<Hittable>,
     right: Box<Hittable>,
@@ -101,6 +107,7 @@ pub enum Hittable {
     MovingSphere(MovingSphere),
     ConstantMedium(ConstantMedium),
     Translate(Translate),
+    Rotate(Rotate),
     List(Vec<Hittable>),
     Bvh(BvhNode),
     Empty,
@@ -146,6 +153,13 @@ impl Hittable {
             boundary: Box::new(boundary),
             neg_inv_density: -(1.0 / density),
             material: Material::new_isotropic(color),
+        })
+    }
+
+    pub fn new_rotate(hittable: Hittable, angle: f64, axis: Vector) -> Self {
+        Self::Rotate(Rotate {
+            hittable: Box::new(hittable),
+            rotation: Quaternion::new_quaternion(angle, axis),
         })
     }
 
@@ -362,6 +376,19 @@ impl Hittable {
                         ..hit
                     })
             }
+            Self::Rotate(ref rotate) => {
+                let origin = r.origin.rotate(&rotate.rotation);
+                let direction = r.direction.rotate(&rotate.rotation);
+                let rotated_ray = Ray::new(origin, direction, r.time);
+                rotate.hittable.hit(&rotated_ray, t_min, t_max).map(|hit| {
+                    let inverted_rotation = rotate.rotation.invert();
+                    HitRecord {
+                        p: hit.p.rotate(&inverted_rotation),
+                        normal: hit.normal.rotate(&inverted_rotation),
+                        ..hit
+                    }
+                })
+            }
             Self::List(ref list) => {
                 let mut record = None;
                 let mut closest_so_far = t_max;
@@ -414,7 +441,24 @@ impl Hittable {
             Self::Translate(ref translate) => translate
                 .hittable
                 .bounding_box(time_start, time_end)
-                .map(|aabb| aabb.add(translate.offset)),
+                .map(|aabb| {
+                    AxisAlignedBoundingBox::new(
+                        aabb.minimum + translate.offset,
+                        aabb.maximum + translate.offset,
+                    )
+                }),
+            Self::Rotate(ref rotate) => {
+                rotate
+                    .hittable
+                    .bounding_box(time_start, time_end)
+                    .map(|aabb| {
+                        /* Rotate bounding box */
+                        AxisAlignedBoundingBox::new(
+                            aabb.minimum.rotate(&rotate.rotation),
+                            aabb.maximum.rotate(&rotate.rotation),
+                        )
+                    })
+            }
             Self::List(ref list) => {
                 let mut result: Option<AxisAlignedBoundingBox> = None;
                 for item in list {

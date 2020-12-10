@@ -72,12 +72,8 @@ impl Vec3Ext<f64> for Vec3<f64> {
 
     fn rotate(&self, q: &Quaternion) -> Vector {
         let p = Vec4::<f64>::from_array([0.0, self[0], self[1], self[2]]);
-        println!("p: {} q: {}", p, q);
         let result = q.hamiltonian_prod(&p);
-        println!("r: {}", result);
-        let inv_q = Quaternion::from_array([q[0], -q[1], -q[2], -q[3]]);
-        let result = result.hamiltonian_prod(&inv_q);
-        println!("r: {}", result);
+        let result = result.hamiltonian_prod(&q.invert());
         Vector::from_array([result[1], result[2], result[3]])
     }
 }
@@ -87,13 +83,18 @@ where
     T: Copy + Default,
 {
     fn new_quaternion(angle: f64, v: Vec3<T>) -> Vec4<T>;
+    fn invert(&self) -> Vec4<T>;
     fn hamiltonian_prod(&self, other: &Vec4<T>) -> Vec4<T>;
 }
 
 impl Vec4Ext<f64> for Vec4<f64> {
-    fn new_quaternion(angle: f64, v: Vector) -> Quaternion {
-        let v = v.normalize() * (angle / 2.0).sin();
+    fn new_quaternion(angle: f64, axis: Vector) -> Quaternion {
+        let v = axis.normalize() * (angle / 2.0).sin();
         Quaternion::from_array([(angle / 2.0).cos(), v[0], v[1], v[2]])
+    }
+
+    fn invert(&self) -> Quaternion {
+        Quaternion::from_array([self[0], -self[1], -self[2], -self[3]])
     }
 
     fn hamiltonian_prod(&self, other: &Quaternion) -> Quaternion {
