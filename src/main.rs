@@ -230,22 +230,35 @@ fn simple_light() -> Vec<Hittable> {
     ]
 }
 
+fn cube_scene() -> Vec<Hittable> {
+    vec![Hittable::new_rotate(
+        Hittable::new_cube(
+            Point::from_array([-1.0, -1.0, -1.0]),
+            Point::from_array([1.0, 1.0, 1.0]),
+            Material::Lambertian(Texture::Normal),
+        ),
+        -40.0f64.to_radians(),
+        Vector::from_array([0.0, 0.0, 1.0]),
+    )]
+}
+
 fn main() {
     // Image
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 500;
-    let max_depth = 50;
+    let max_depth = 5;
 
     println!("{} {}", image_width, image_height);
 
     // World
-    let mut world = match 3 {
+    let mut world = match 4 {
         0 => random_scene(),
         1 => two_spheres(),
         2 => earth(),
         3 => simple_light(),
+        4 => cube_scene(),
         _ => small_scene(),
     };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);

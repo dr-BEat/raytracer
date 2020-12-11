@@ -9,6 +9,7 @@ pub enum Texture {
     Solid(Color),
     Checker((Box<Texture>, Box<Texture>)),
     Image(RgbImage),
+    Normal,
 }
 
 impl Texture {
@@ -61,6 +62,7 @@ impl Texture {
                     pixel[2] as f64 * color_scale,
                 ])
             }
+            Self::Normal => *p,
         }
     }
 }
