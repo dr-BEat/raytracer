@@ -1,4 +1,5 @@
 extern crate image;
+use clap::Clap;
 use image::ImageBuffer;
 use image::Rgb;
 use image::RgbImage;
@@ -25,6 +26,29 @@ mod texture;
 
 mod scenes;
 use crate::scenes::*;
+
+/// A cool raytracer!
+#[derive(Clap)]
+#[clap(version = "1.0", author = "BEat")]
+struct Opts {
+    /// Sets an output file to render too.
+    #[clap(short, long, default_value = "renders/image.png")]
+    output: String,
+    #[clap(short, long, default_value = "4")]
+    scene: u32,
+
+    #[clap(short, long, default_value = "1200")]
+    image_width: u32,
+
+    #[clap(short, long, default_value = "1.5")]
+    aspect_ratio: f64,
+
+    #[clap(long, default_value = "500")]
+    samples_per_pixel: u32,
+
+    #[clap(long, default_value = "5")]
+    max_depth: u32,
+}
 
 fn pixel_from_color(color: Color) -> Rgb<u8> {
     // gamma-correct for gamma=2.0
@@ -59,17 +83,16 @@ fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color 
 }
 
 fn main() {
+    let opts: Opts = Opts::parse();
+
     // Image
-    let aspect_ratio = 3.0 / 2.0;
-    let image_width = 1200;
-    let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 500;
-    let max_depth = 5;
+    let image_width = opts.image_width;
+    let image_height = (image_width as f64 / opts.aspect_ratio) as u32;
 
     println!("{} {}", image_width, image_height);
 
     // World
-    let mut world = match 4 {
+    let mut world = match opts.scene {
         0 => random_scene(),
         1 => two_spheres(),
         2 => earth(),
@@ -91,7 +114,7 @@ fn main() {
         lookat,
         vup,
         20.0,
-        aspect_ratio,
+        opts.aspect_ratio,
         aperture,
         dist_to_focus,
         0.0,
@@ -106,14 +129,14 @@ fn main() {
         .par_iter()
         .map(|(x, y)| {
             let mut pixel_color = Color::new();
-            for _ in 0..samples_per_pixel {
+            for _ in 0..opts.samples_per_pixel {
                 let u = ((*x) as f64 + rand::random::<f64>()) / (image_width - 1) as f64;
                 let v = ((image_height - y - 1) as f64 + rand::random::<f64>())
                     / (image_height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, background, &world, max_depth);
+                pixel_color += ray_color(&r, background, &world, opts.max_depth);
             }
-            pixel_color /= samples_per_pixel as f64;
+            pixel_color /= opts.samples_per_pixel as f64;
             ((*x, *y), pixel_from_color(pixel_color))
         })
         .collect::<Vec<_>>();
@@ -122,6 +145,6 @@ fn main() {
         image.put_pixel(pixel.0 .0, pixel.0 .1, pixel.1);
     }
     println!("Rendered in {} seconds", now.elapsed().as_secs_f32());
-    image.save("renders/image.png").unwrap();
-    println!("Created img.png");
+    image.save(opts.output).unwrap();
+    println!("Created image!");
 }
