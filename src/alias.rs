@@ -60,7 +60,7 @@ impl Vec3Ext<f64> for Vec3<f64> {
     }
 
     fn reflect(&self, n: &Vector) -> Vector {
-        return *self - 2.0 * self.dot(*n) * *n;
+        *self - 2.0 * self.dot(*n) * *n
     }
 
     fn refract(&self, n: &Vector, etai_over_etat: f64) -> Vector {

@@ -11,10 +11,7 @@ pub struct AxisAlignedBoundingBox {
 
 impl AxisAlignedBoundingBox {
     pub fn new(minimum: Point, maximum: Point) -> Self {
-        Self {
-            minimum: minimum,
-            maximum: maximum,
-        }
+        Self { minimum, maximum }
     }
 
     pub fn hit(&self, r: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
@@ -33,7 +30,7 @@ impl AxisAlignedBoundingBox {
                 return false;
             }
         }
-        return true;
+        true
     }
 
     pub fn surrounding_box(&self, other: &Self) -> Self {

@@ -1,7 +1,6 @@
 use crate::alias::*;
 use crate::ray::*;
 
-use rand;
 use rand::Rng;
 
 pub struct Camera {
@@ -49,15 +48,15 @@ impl Camera {
         let vertical = focus_dist * viewport_height * v;
         Self {
             origin: lookfrom,
-            horizontal: horizontal,
-            vertical: vertical,
+            horizontal,
+            vertical,
             lower_left_corner: origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w,
-            u: u,
-            v: v,
-            w: w,
+            u,
+            v,
+            w,
             lens_radius: aperture / 2.0,
-            time_open: time_open,
-            time_close: time_close,
+            time_open,
+            time_close,
         }
     }
 

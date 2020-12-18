@@ -22,7 +22,7 @@ pub fn two_spheres() -> Vec<Hittable> {
         Hittable::new_sphere(
             Point::from_array([0.0, 10.0, 0.0]),
             10.0,
-            Material::new_lambertian_with_texture(checker.clone()),
+            Material::new_lambertian_with_texture(checker),
         ),
     ]
 }

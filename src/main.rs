@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 extern crate image;
 use clap::Clap;
 use image::ImageBuffer;
@@ -66,7 +68,7 @@ fn pixel_from_color(color: Color) -> Rgb<u8> {
 
 fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
-    if depth <= 0 {
+    if depth == 0 {
         return Color::new();
     }
 

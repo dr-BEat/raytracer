@@ -10,9 +10,9 @@ pub struct Ray {
 impl Ray {
     pub fn new(origin: Point, direction: Vector, time: f64) -> Self {
         Self {
-            origin: origin,
-            direction: direction,
-            time: time,
+            origin,
+            direction,
+            time,
         }
     }
 

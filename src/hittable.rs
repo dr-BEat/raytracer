@@ -27,17 +27,17 @@ impl<'a> HitRecord<'a> {
     ) -> Self {
         let front_face = r.direction.dot(outward_normal) < 0.0;
         Self {
-            p: p,
-            t: t,
-            u: u,
-            v: v,
-            front_face: front_face,
+            p,
+            t,
+            u,
+            v,
+            front_face,
             normal: if front_face {
                 outward_normal
             } else {
                 -outward_normal
             },
-            material: material,
+            material,
         }
     }
 }
@@ -115,18 +115,14 @@ pub enum Hittable {
 
 impl Hittable {
     pub fn new_cube(p0: Point, p1: Point, material: Material) -> Self {
-        Self::Cube(Cube {
-            p0: p0,
-            p1: p1,
-            material: material,
-        })
+        Self::Cube(Cube { p0, p1, material })
     }
 
     pub fn new_sphere(center: Point, radius: f64, material: Material) -> Self {
         Self::Sphere(Sphere {
-            center: center,
-            radius: radius,
-            material: material,
+            center,
+            radius,
+            material,
         })
     }
 
@@ -139,12 +135,12 @@ impl Hittable {
         material: Material,
     ) -> Self {
         Self::MovingSphere(MovingSphere {
-            center_start: center_start,
-            center_end: center_end,
-            time_start: time_start,
-            time_end: time_end,
-            radius: radius,
-            material: material,
+            center_start,
+            center_end,
+            time_start,
+            time_end,
+            radius,
+            material,
         })
     }
 
@@ -208,7 +204,7 @@ impl Hittable {
         Self::Bvh(BvhNode {
             left: Box::new(left),
             right: Box::new(right),
-            bounding_box: bounding_box,
+            bounding_box,
         })
     }
 
@@ -325,17 +321,8 @@ impl Hittable {
                 let enable_debug = false;
                 let debugging = enable_debug && rand::random::<f64>() < 0.00001;
 
-                let hit1 = medium.boundary.hit(r, f64::NEG_INFINITY, f64::INFINITY);
-                if hit1.is_none() {
-                    return None;
-                }
-                let mut hit1 = hit1.unwrap();
-
-                let hit2 = medium.boundary.hit(r, hit1.t + 0.0001, f64::INFINITY);
-                if hit2.is_none() {
-                    return None;
-                }
-                let mut hit2 = hit2.unwrap();
+                let mut hit1 = medium.boundary.hit(r, f64::NEG_INFINITY, f64::INFINITY)?;
+                let mut hit2 = medium.boundary.hit(r, hit1.t + 0.0001, f64::INFINITY)?;
 
                 if debugging {
                     println!("t_min={}, t_max={}", hit1.t, hit2.t);

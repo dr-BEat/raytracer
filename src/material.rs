@@ -33,14 +33,11 @@ impl Material {
     }
 
     pub fn new_dielectric(ir: f64) -> Self {
-        Material::Dielectric(Dielectric { ir: ir })
+        Material::Dielectric(Dielectric { ir })
     }
 
     pub fn new_metal(albedo: Color, fuzz: f64) -> Self {
-        Material::Metal(Metal {
-            albedo: albedo,
-            fuzz: fuzz,
-        })
+        Material::Metal(Metal { albedo, fuzz })
     }
 
     pub fn new_diffuse_light(emit: Color) -> Self {
@@ -116,5 +113,5 @@ fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
     // Use Schlick's approximation for reflectance.
     let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     let r0 = r0 * r0;
-    return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
