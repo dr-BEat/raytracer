@@ -48,19 +48,20 @@ impl Material {
         Self::Isotropic(Texture::Solid(albedo))
     }
 
-    pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray)> {
+    pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray, f64)> {
         match *self {
             Self::Lambertian(ref texture) => {
                 let mut scatter_direction = hit.normal + Vector::random_unit_vector();
 
+                // Catch degenerate scatter direction
                 if scatter_direction.near_zero() {
                     scatter_direction = hit.normal;
                 }
 
-                Some((
-                    texture.value(hit.u, hit.v, &hit.p),
-                    Ray::new(hit.p, scatter_direction, r.time),
-                ))
+                let albedo = texture.value(hit.u, hit.v, &hit.p);
+                let scattered = Ray::new(hit.p, scatter_direction.normalize(), r.time);
+                let pdf = hit.normal.dot(scattered.direction) / std::f64::consts::PI;
+                Some((albedo, scattered, pdf))
             }
             Self::Dielectric(ref dielectric) => {
                 let refraction_ratio = if hit.front_face {
@@ -82,6 +83,7 @@ impl Material {
                 Some((
                     Color::from_array([1.0, 1.0, 1.0]),
                     Ray::new(hit.p, direction, r.time),
+                    1.0,
                 ))
             }
             Self::Metal(ref metal) => {
@@ -91,13 +93,28 @@ impl Material {
                     return None;
                 }
 
-                Some((metal.albedo, Ray::new(hit.p, direction, r.time)))
+                Some((metal.albedo, Ray::new(hit.p, direction, r.time), 1.0))
             }
             Self::DiffuseLight(_) => None,
             Self::Isotropic(ref texture) => Some((
                 texture.value(hit.u, hit.v, &hit.p),
                 Ray::new(hit.p, Point::random_in_unit_sphere(), r.time),
+                1.0,
             )),
+        }
+    }
+
+    pub fn scattering_pdf(&self, r: &Ray, hit: &HitRecord, scattered: &Ray) -> f64 {
+        match *self {
+            Self::Lambertian(_) => {
+                let cosine = hit.normal.dot(scattered.direction.normalize());
+                if cosine <= 0.0 {
+                    0.0
+                } else {
+                    cosine / std::f64::consts::PI
+                }
+            }
+            _ => 1.0,
         }
     }
 

@@ -36,7 +36,7 @@ struct Opts {
     /// Sets an output file to render too.
     #[clap(short, long, default_value = "renders/image.png")]
     output: String,
-    #[clap(short, long, default_value = "4")]
+    #[clap(short, long, default_value = "3")]
     scene: u32,
 
     #[clap(short, long, default_value = "1200")]
@@ -75,8 +75,12 @@ fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color 
     let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
         let emitted = hit.material.emit(hit.u, hit.v, &hit.p);
-        if let Some((attenuation, scattered)) = hit.material.scatter(r, &hit) {
-            return emitted + attenuation * ray_color(&scattered, background, world, depth - 1);
+        if let Some((albedo, scattered, pdf)) = hit.material.scatter(r, &hit) {
+            return emitted
+                + albedo
+                    * hit.material.scattering_pdf(r, &hit, &scattered)
+                    * ray_color(&scattered, background, world, depth - 1)
+                    / pdf;
         }
         return emitted;
     }
