@@ -248,7 +248,21 @@ impl Hittable {
                     Vector::from(0.5, 0.5, 0.0).normalize()
                 };
 
-                Some(HitRecord::new(r, p, t, 0.0, 0.0, normal, &cube.material))
+                // Scale p to a range to 0,1 on all axis
+                let rel_p = (p - cube.p0) / (cube.p1 - cube.p0);
+                let uv = Vec2::from(rel_p[0], rel_p[1]) * normal[2].abs()
+                    + Vec2::from(rel_p[1], rel_p[2]) * normal[0].abs()
+                    + Vec2::from(rel_p[0], rel_p[2]) * normal[1].abs();
+
+                Some(HitRecord::new(
+                    r,
+                    p,
+                    t,
+                    uv[0],
+                    uv[1],
+                    normal,
+                    &cube.material,
+                ))
             }
             Self::Sphere(ref sphere) => {
                 let oc = r.origin - sphere.center;

@@ -10,6 +10,7 @@ pub enum Texture {
     Checker((Box<Texture>, Box<Texture>)),
     Image(RgbImage),
     Normal,
+    UV,
 }
 
 impl Texture {
@@ -63,6 +64,7 @@ impl Texture {
                 )
             }
             Self::Normal => normal.map(|i| i.abs()),
+            Self::UV => Vector::from(u, v, 0.0),
         }
     }
 }

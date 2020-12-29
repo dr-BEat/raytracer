@@ -169,9 +169,9 @@ pub fn cube_scene() -> Vec<Hittable> {
         Hittable::new_cube(
             Point::from(-1.0, -1.0, -1.0),
             Point::from(1.0, 1.0, 1.0),
-            Material::Lambertian(Texture::Normal),
+            Material::Lambertian(Texture::UV),
         ),
-        -40.0f64.to_radians(),
+        -90.0f64.to_radians(),
         Vector::from(0.0, 0.0, 1.0),
     )]
 }
