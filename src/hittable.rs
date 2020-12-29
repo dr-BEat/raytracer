@@ -227,26 +227,27 @@ impl Hittable {
                 }
                 let t = t_min;
                 let p = r.at(t);
-
-                //let normal = (p - cube.p0).cross(p - cube.p1).normalize();
-                let normal = if p[0] == cube.p0[0] {
-                    Vector::from(1.0, 0.0, 0.0)
-                } else if p[0] == cube.p1[0] {
-                    Vector::from(-1.0, 0.0, 0.0)
-                } else if p[1] == cube.p0[1] {
-                    Vector::from(0.0, 1.0, 0.0)
-                } else if p[1] == cube.p1[1] {
-                    Vector::from(0.0, -1.0, 0.0)
-                } else if p[2] == cube.p0[2] {
-                    Vector::from(0.0, 0.0, 1.0)
-                } else if p[2] == cube.p1[2] {
-                    Vector::from(0.0, 0.0, -1.0)
-                } else {
-                    Vector::from(0.5, 0.5, 0.0).normalize()
-                };
-
                 // Scale p to a range to 0,1 on all axis
                 let rel_p = (p - cube.p0) / (cube.p1 - cube.p0);
+
+                let epsilon = 0.002;
+                let normal = if rel_p[0] < epsilon {
+                    Vector::from(1.0, 0.0, 0.0)
+                } else if rel_p[0] > 1.0 - epsilon {
+                    Vector::from(-1.0, 0.0, 0.0)
+                } else if rel_p[1] < epsilon {
+                    Vector::from(0.0, 1.0, 0.0)
+                } else if rel_p[1] > 1.0 - epsilon {
+                    Vector::from(0.0, -1.0, 0.0)
+                } else if rel_p[2] < epsilon {
+                    Vector::from(0.0, 0.0, 1.0)
+                } else if rel_p[2] > 1.0 - epsilon {
+                    Vector::from(0.0, 0.0, -1.0)
+                } else {
+                    println!("Miss! {}", rel_p);
+                    Vector::from(0.5, 0.5, 0.5).normalize()
+                };
+
                 let uv = Vec2::from(rel_p[0], rel_p[1]) * normal[2].abs()
                     + Vec2::from(rel_p[1], rel_p[2]) * normal[0].abs()
                     + Vec2::from(rel_p[0], rel_p[2]) * normal[1].abs();
