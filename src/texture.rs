@@ -29,16 +29,16 @@ impl Texture {
         Ok(Self::Image(img.to_rgb8()))
     }
 
-    pub fn value(&self, u: f64, v: f64, p: &Point) -> Color {
+    pub fn value(&self, u: f64, v: f64, p: &Point, normal: &Vector) -> Color {
         match *self {
             Self::Solid(ref color) => *color,
             Self::Checker((ref odd, ref even)) => {
                 let scale = 10.0;
                 let sines = (scale * p[0]).sin() * (scale * p[1]).sin() * (scale * p[2]).sin();
                 if sines < 0.0 {
-                    odd.value(u, v, p)
+                    odd.value(u, v, p, normal)
                 } else {
-                    even.value(u, v, p)
+                    even.value(u, v, p, normal)
                 }
             }
             Self::Image(ref image) => {
@@ -62,7 +62,7 @@ impl Texture {
                     pixel[2] as f64 * color_scale,
                 ])
             }
-            Self::Normal => *p,
+            Self::Normal => normal.map(|i| i.abs()),
         }
     }
 }
