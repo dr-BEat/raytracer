@@ -56,11 +56,11 @@ impl Texture {
                 let color_scale = 1.0 / 255.0;
                 let pixel = image.get_pixel(x, y);
 
-                Color::from_array([
+                Color::from(
                     pixel[0] as f64 * color_scale,
                     pixel[1] as f64 * color_scale,
                     pixel[2] as f64 * color_scale,
-                ])
+                )
             }
             Self::Normal => normal.map(|i| i.abs()),
         }

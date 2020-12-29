@@ -22,17 +22,17 @@ where
 
 impl Vec3Ext<f64> for Vec3<f64> {
     fn random_vector() -> Vector {
-        Self::from_array([rand::random(), rand::random(), rand::random()])
+        Self::from(rand::random(), rand::random(), rand::random())
     }
 
     fn random_in_unit_sphere() -> Point {
         let mut rng = rand::thread_rng();
         loop {
-            let p = Point::from_array([
+            let p = Point::from(
                 rng.gen_range(-1.0, 1.0),
                 rng.gen_range(-1.0, 1.0),
                 rng.gen_range(-1.0, 1.0),
-            ]);
+            );
             if p.sqrlen() < 1.0 {
                 return p;
             }
@@ -46,7 +46,7 @@ impl Vec3Ext<f64> for Vec3<f64> {
     fn random_in_unit_disk() -> Point {
         let mut rng = rand::thread_rng();
         loop {
-            let p = Point::from_array([rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0]);
+            let p = Point::from(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0);
             if p.sqrlen() < 1.0 {
                 return p;
             }
@@ -71,10 +71,10 @@ impl Vec3Ext<f64> for Vec3<f64> {
     }
 
     fn rotate(&self, q: &Quaternion) -> Vector {
-        let p = Vec4::<f64>::from_array([0.0, self[0], self[1], self[2]]);
+        let p = Vec4::<f64>::from(0.0, self[0], self[1], self[2]);
         let result = q.hamiltonian_prod(&p);
         let result = result.hamiltonian_prod(&q.invert());
-        Vector::from_array([result[1], result[2], result[3]])
+        Vector::from(result[1], result[2], result[3])
     }
 }
 
@@ -90,20 +90,20 @@ where
 impl Vec4Ext<f64> for Vec4<f64> {
     fn new_quaternion(angle: f64, axis: Vector) -> Quaternion {
         let v = axis.normalize() * (angle / 2.0).sin();
-        Quaternion::from_array([(angle / 2.0).cos(), v[0], v[1], v[2]])
+        Quaternion::from((angle / 2.0).cos(), v[0], v[1], v[2])
     }
 
     fn invert(&self) -> Quaternion {
-        Quaternion::from_array([self[0], -self[1], -self[2], -self[3]])
+        Quaternion::from(self[0], -self[1], -self[2], -self[3])
     }
 
     fn hamiltonian_prod(&self, other: &Quaternion) -> Quaternion {
-        Quaternion::from_array([
+        Quaternion::from(
             self[0] * other[0] - self[1] * other[1] - self[2] * other[2] - self[3] * other[3],
             self[0] * other[1] + self[1] * other[0] + self[2] * other[3] - self[3] * other[2],
             self[0] * other[2] - self[1] * other[3] + self[2] * other[0] + self[3] * other[1],
             self[0] * other[3] + self[1] * other[2] - self[2] * other[1] + self[3] * other[0],
-        ])
+        )
     }
 }
 
@@ -114,19 +114,18 @@ mod tests {
 
     #[test]
     fn test_rotate() {
-        let q =
-            Quaternion::new_quaternion(90.0f64.to_radians(), Vector::from_array([0.0, 1.0, 0.0]));
-        let p = Vector::from_array([1.0, 0.0, 0.0]);
-        assert!((p.rotate(&q) - Vector::from_array([0.0, 0.0, -1.0])).near_zero());
+        let q = Quaternion::new_quaternion(90.0f64.to_radians(), Vector::from(0.0, 1.0, 0.0));
+        let p = Vector::from(1.0, 0.0, 0.0);
+        assert!((p.rotate(&q) - Vector::from(0.0, 0.0, -1.0)).near_zero());
     }
 
-    #[test_case( 90.0, Vector::from_array([0.0, 1.0, 0.0]), Vector::from_array([0.0, 0.0, -1.0]))]
-    #[test_case( 180.0, Vector::from_array([0.0, 1.0, 0.0]), Vector::from_array([-1.0, 0.0, 0.0]))]
-    #[test_case( 270.0, Vector::from_array([0.0, 1.0, 0.0]), Vector::from_array([0.0, 0.0, 1.0]))]
-    #[test_case( 45.0, Vector::from_array([0.0, 1.0, 0.0]), Vector::from_array([0.7071067811865475, 0.0, -0.7071067811865476]))]
+    #[test_case( 90.0, Vector::from(0.0, 1.0, 0.0), Vector::from(0.0, 0.0, -1.0))]
+    #[test_case( 180.0, Vector::from(0.0, 1.0, 0.0), Vector::from(-1.0, 0.0, 0.0))]
+    #[test_case(270.0, Vector::from(0.0, 1.0, 0.0), Vector::from(0.0, 0.0, 1.0))]
+    #[test_case( 45.0, Vector::from(0.0, 1.0, 0.0), Vector::from(0.7071067811865475, 0.0, -0.7071067811865476))]
     fn test_rotations(angle: f64, axis: Vector, result: Vector) {
         let q = Quaternion::new_quaternion(angle.to_radians(), axis);
-        let p = Vector::from_array([1.0, 0.0, 0.0]);
+        let p = Vector::from(1.0, 0.0, 0.0);
         assert!((p.rotate(&q) - result).near_zero());
     }
 
@@ -136,8 +135,8 @@ mod tests {
         #[test]
         fn test_rotate_around_same_axis_does_nothing(angle in 0.0f64..std::f64::consts::PI) {
             let q =
-                Quaternion::new_quaternion(angle, Vector::from_array([0.0, 1.0, 0.0]));
-            let p = Vector::from_array([0.0, 1.0, 0.0]);
+                Quaternion::new_quaternion(angle, Vector::from(0.0, 1.0, 0.0));
+            let p = Vector::from(0.0, 1.0, 0.0);
             prop_assert!((p.rotate(&q) - p).near_zero());
         }
     }

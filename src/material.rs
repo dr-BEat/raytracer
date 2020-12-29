@@ -81,7 +81,7 @@ impl Material {
                     unit_direction.refract(&hit.normal, refraction_ratio)
                 };
                 Some((
-                    Color::from_array([1.0, 1.0, 1.0]),
+                    Color::from(1.0, 1.0, 1.0),
                     Ray::new(hit.p, direction, r.time),
                     1.0,
                 ))

@@ -109,12 +109,12 @@ fn main() {
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
 
     // Camera
-    let lookfrom = Point::from_array([13.0, 2.0, 3.0]);
-    let lookat = Point::from_array([0.0, 0.0, 0.0]);
-    let vup = Vector::from_array([0.0, 1.0, 0.0]);
+    let lookfrom = Point::from(13.0, 2.0, 3.0);
+    let lookat = Point::from(0.0, 0.0, 0.0);
+    let vup = Vector::from(0.0, 1.0, 0.0);
     let dist_to_focus = 10.0;
     let aperture = 0.1;
-    let background = Color::from_array([0.50, 0.70, 1.00]);
+    let background = Color::from(0.50, 0.70, 1.00);
     let cam = Camera::new(
         lookfrom,
         lookat,

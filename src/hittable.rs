@@ -233,19 +233,19 @@ impl Hittable {
 
                 //let normal = (p - cube.p0).cross(p - cube.p1).normalize();
                 let normal = if p[0] == cube.p0[0] {
-                    Vector::from_array([1.0, 0.0, 0.0])
+                    Vector::from(1.0, 0.0, 0.0)
                 } else if p[0] == cube.p1[0] {
-                    Vector::from_array([-1.0, 0.0, 0.0])
+                    Vector::from(-1.0, 0.0, 0.0)
                 } else if p[1] == cube.p0[1] {
-                    Vector::from_array([0.0, 1.0, 0.0])
+                    Vector::from(0.0, 1.0, 0.0)
                 } else if p[1] == cube.p1[1] {
-                    Vector::from_array([0.0, -1.0, 0.0])
+                    Vector::from(0.0, -1.0, 0.0)
                 } else if p[2] == cube.p0[2] {
-                    Vector::from_array([0.0, 0.0, 1.0])
+                    Vector::from(0.0, 0.0, 1.0)
                 } else if p[2] == cube.p1[2] {
-                    Vector::from_array([0.0, 0.0, -1.0])
+                    Vector::from(0.0, 0.0, -1.0)
                 } else {
-                    Vector::from_array([0.5, 0.5, 0.0]).normalize()
+                    Vector::from(0.5, 0.5, 0.0).normalize()
                 };
 
                 Some(HitRecord::new(r, p, t, 0.0, 0.0, normal, &cube.material))
@@ -358,7 +358,7 @@ impl Hittable {
                     t,
                     0.0,
                     0.0,
-                    Vector::from_array([1.0, 0.0, 0.0]), // arbitrary
+                    Vector::from(1.0, 0.0, 0.0), // arbitrary
                     &medium.material,
                 ))
             }
