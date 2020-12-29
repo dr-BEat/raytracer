@@ -58,7 +58,7 @@ impl Material {
                     scatter_direction = hit.normal;
                 }
 
-                let albedo = texture.value(hit.u, hit.v, &hit.p, &hit.normal);
+                let albedo = texture.value(&hit.uv, &hit.p, &hit.normal);
                 let scattered = Ray::new(hit.p, scatter_direction.normalize(), r.time);
                 let pdf = hit.normal.dot(scattered.direction) / std::f64::consts::PI;
                 Some((albedo, scattered, pdf))
@@ -97,7 +97,7 @@ impl Material {
             }
             Self::DiffuseLight(_) => None,
             Self::Isotropic(ref texture) => Some((
-                texture.value(hit.u, hit.v, &hit.p, &hit.normal),
+                texture.value(&hit.uv, &hit.p, &hit.normal),
                 Ray::new(hit.p, Point::random_in_unit_sphere(), r.time),
                 1.0,
             )),
@@ -118,9 +118,9 @@ impl Material {
         }
     }
 
-    pub fn emit(&self, u: f64, v: f64, p: &Point, normal: &Vector) -> Color {
+    pub fn emit(&self, uv: &Vec2<f64>, p: &Point, normal: &Vector) -> Color {
         match *self {
-            Self::DiffuseLight(ref texture) => texture.value(u, v, p, normal),
+            Self::DiffuseLight(ref texture) => texture.value(uv, p, normal),
             _ => Color::new(),
         }
     }

@@ -30,25 +30,25 @@ impl Texture {
         Ok(Self::Image(img.to_rgb8()))
     }
 
-    pub fn value(&self, u: f64, v: f64, p: &Point, normal: &Vector) -> Color {
+    pub fn value(&self, uv: &Vec2<f64>, p: &Point, normal: &Vector) -> Color {
         match *self {
             Self::Solid(ref color) => *color,
             Self::Checker((ref odd, ref even)) => {
                 let scale = 10.0;
                 let sines = (scale * p[0]).sin() * (scale * p[1]).sin() * (scale * p[2]).sin();
                 if sines < 0.0 {
-                    odd.value(u, v, p, normal)
+                    odd.value(uv, p, normal)
                 } else {
-                    even.value(u, v, p, normal)
+                    even.value(uv, p, normal)
                 }
             }
             Self::Image(ref image) => {
                 // Clamp input texture coordinates to [0,1] x [1,0]
-                let u = u.max(0.0).min(1.0);
-                let v = 1.0 - v.max(0.0).min(1.0); // Flip V to image coordinates
+                let mut uv = uv.map(|i| i.max(0.0).min(1.0));
+                uv[1] = 1.0 - uv[1]; // Flip V to image coordinates
 
-                let x = (u * image.width() as f64) as u32;
-                let y = (v * image.height() as f64) as u32;
+                let x = (uv[0] * image.width() as f64) as u32;
+                let y = (uv[1] * image.height() as f64) as u32;
 
                 // Clamp integer mapping, since actual coordinates should be less than 1.0
                 let x = x.min(image.width() - 1);
@@ -64,7 +64,7 @@ impl Texture {
                 )
             }
             Self::Normal => normal.map(|i| i.abs()),
-            Self::UV => Vector::from(u, v, 0.0),
+            Self::UV => Vector::from(uv[0], uv[1], 0.0),
         }
     }
 }

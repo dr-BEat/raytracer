@@ -9,8 +9,7 @@ pub struct HitRecord<'a> {
     pub p: Point,
     pub normal: Vector,
     pub t: f64,
-    pub u: f64,
-    pub v: f64,
+    pub uv: Vec2<f64>,
     pub front_face: bool,
     pub material: &'a Material,
 }
@@ -20,8 +19,7 @@ impl<'a> HitRecord<'a> {
         r: &Ray,
         p: Point,
         t: f64,
-        u: f64,
-        v: f64,
+        uv: Vec2<f64>,
         outward_normal: Vector,
         material: &'a Material,
     ) -> Self {
@@ -29,8 +27,7 @@ impl<'a> HitRecord<'a> {
         Self {
             p,
             t,
-            u,
-            v,
+            uv,
             front_face,
             normal: if front_face {
                 outward_normal
@@ -254,15 +251,7 @@ impl Hittable {
                     + Vec2::from(rel_p[1], rel_p[2]) * normal[0].abs()
                     + Vec2::from(rel_p[0], rel_p[2]) * normal[1].abs();
 
-                Some(HitRecord::new(
-                    r,
-                    p,
-                    t,
-                    uv[0],
-                    uv[1],
-                    normal,
-                    &cube.material,
-                ))
+                Some(HitRecord::new(r, p, t, uv, normal, &cube.material))
             }
             Self::Sphere(ref sphere) => {
                 let oc = r.origin - sphere.center;
@@ -286,13 +275,11 @@ impl Hittable {
 
                 let p = r.at(root);
                 let outward_normal = (p - sphere.center) / sphere.radius;
-                let (u, v) = get_sphere_uv(&outward_normal);
                 Some(HitRecord::new(
                     r,
                     p,
                     root,
-                    u,
-                    v,
+                    get_sphere_uv(&outward_normal),
                     outward_normal,
                     &sphere.material,
                 ))
@@ -319,13 +306,11 @@ impl Hittable {
 
                 let p = r.at(root);
                 let outward_normal = (p - sphere.center(r.time)) / sphere.radius;
-                let (u, v) = get_sphere_uv(&outward_normal);
                 Some(HitRecord::new(
                     r,
                     p,
                     root,
-                    u,
-                    v,
+                    get_sphere_uv(&outward_normal),
                     outward_normal,
                     &sphere.material,
                 ))
@@ -370,8 +355,7 @@ impl Hittable {
                     r,
                     p,
                     t,
-                    0.0,
-                    0.0,
+                    Vec2::from(0.0, 0.0),
                     Vector::from(1.0, 0.0, 0.0), // arbitrary
                     &medium.material,
                 ))
@@ -500,11 +484,11 @@ impl Hittable {
 /// # Arguments
 ///
 /// * `p` - A given point on the sphere of radius one, centered at the origin.
-fn get_sphere_uv(p: &Point) -> (f64, f64) {
+fn get_sphere_uv(p: &Point) -> Vec2<f64> {
     let theta = (-p[1]).acos();
     let phi = (-p[2]).atan2(p[0]) + std::f64::consts::PI;
 
     let u = phi / (2.0 * std::f64::consts::PI);
     let v = theta / std::f64::consts::PI;
-    (u, v)
+    Vec2::from(u, v)
 }
