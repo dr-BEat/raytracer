@@ -485,11 +485,33 @@ impl Hittable {
 /// # Arguments
 ///
 /// * `p` - A given point on the sphere of radius one, centered at the origin.
-fn get_sphere_uv(p: &Point) -> Vec2<f64> {
+///
+/// ```
+/// let uv = get_sphere_uv(&Point::from(1.0, 0.0, 0.0));
+/// assert_eq!(uv, Vec2::from(0.5, 0.5));
+/// ```
+pub fn get_sphere_uv(p: &Point) -> Vec2<f64> {
     let theta = (-p[1]).acos();
     let phi = (-p[2]).atan2(p[0]) + std::f64::consts::PI;
 
     let u = phi / (2.0 * std::f64::consts::PI);
     let v = theta / std::f64::consts::PI;
     Vec2::from(u, v)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test_case::test_case;
+
+    #[test_case(Point::from(1.0, 0.0, 0.0), Vec2::from(0.50, 0.5))]
+    #[test_case(Point::from(0.0, 1.0, 0.0), Vec2::from(0.50, 1.0))]
+    #[test_case(Point::from(0.0, 0.0, 1.0), Vec2::from(0.25, 0.5))]
+    #[test_case(Point::from(-1.0, 0.0, 0.0), Vec2::from(0.00, 0.5))]
+    #[test_case(Point::from(0.0, -1.0, 0.0), Vec2::from(0.50, 0.0))]
+    #[test_case(Point::from(0.0, 0.0, -1.0), Vec2::from(0.75, 0.5))]
+    fn test_get_sphere_uv(p: Point, result: Vec2<f64>) {
+        let uv = get_sphere_uv(&p);
+        assert!((uv - result).near_zero());
+    }
 }

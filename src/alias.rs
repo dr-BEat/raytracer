@@ -6,6 +6,20 @@ pub type Point = Vec3<f64>;
 pub type Vector = Vec3<f64>;
 pub type Quaternion = Vec4<f64>;
 
+pub trait Vec2Ext<T>
+where
+    T: Copy + Default,
+{
+    fn near_zero(&self) -> bool;
+}
+
+impl Vec2Ext<f64> for Vec2<f64> {
+    fn near_zero(&self) -> bool {
+        // Return true if the vector is close to zero in all dimensions.
+        self.map(|i| i.abs() < 1e-8).all()
+    }
+}
+
 pub trait Vec3Ext<T>
 where
     T: Copy + Default,
@@ -55,8 +69,7 @@ impl Vec3Ext<f64> for Vec3<f64> {
 
     fn near_zero(&self) -> bool {
         // Return true if the vector is close to zero in all dimensions.
-        let s = 1e-8;
-        (self[0].abs() < s) && (self[1].abs() < s) && (self[2].abs() < s)
+        self.map(|i| i.abs() < 1e-8).all()
     }
 
     fn reflect(&self, n: &Vector) -> Vector {
