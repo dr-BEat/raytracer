@@ -51,12 +51,8 @@ impl Material {
     pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray, f64)> {
         match *self {
             Self::Lambertian(ref texture) => {
-                let mut scatter_direction = hit.normal + Vector::random_unit_vector();
-
-                // Catch degenerate scatter direction
-                if scatter_direction.near_zero() {
-                    scatter_direction = hit.normal;
-                }
+                let uvw = ONB::from_w(&hit.normal);
+                let scatter_direction = uvw.local(&Vector::random_cosine_direction());
 
                 let albedo = texture.value(&hit.uv, &hit.p, &hit.normal);
                 let scattered = Ray::new(hit.p, scatter_direction.normalize(), r.time);
