@@ -165,13 +165,17 @@ pub fn simple_light() -> Vec<Hittable> {
 }
 
 pub fn cube_scene() -> Vec<Hittable> {
+    let earth_texture = Texture::new_image("assets/earthmap.jpg").unwrap();
+    //let earth_texture = Texture::new_image("assets/checker.png").unwrap();
+    let earth_surface = Material::new_lambertian_with_texture(earth_texture);
     vec![Hittable::new_rotate(
         Hittable::new_cube(
             Point::from(-1.0, -1.0, -1.0),
             Point::from(1.0, 1.0, 1.0),
-            Material::Lambertian(Texture::UV),
+            earth_surface,
+            //Material::Lambertian(Texture::UV),
         ),
-        -90.0f64.to_radians(),
+        -45.0f64.to_radians(),
         Vector::from(0.0, 0.0, 1.0),
     )]
 }
