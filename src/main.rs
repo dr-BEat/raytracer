@@ -74,7 +74,7 @@ fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color 
 
     let hit_result = world.hit(r, 0.001, f64::INFINITY);
     if let Some(hit) = hit_result {
-        let emitted = hit.material.emit(&hit.uv, &hit.p, &hit.normal);
+        let emitted = hit.material.emit(&hit);
         if let Some((albedo, scattered, pdf)) = hit.material.scatter(r, &hit) {
             return emitted
                 + albedo

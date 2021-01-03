@@ -114,9 +114,11 @@ impl Material {
         }
     }
 
-    pub fn emit(&self, uv: &Vec2<f64>, p: &Point, normal: &Vector) -> Color {
+    pub fn emit(&self, hit: &HitRecord) -> Color {
         match *self {
-            Self::DiffuseLight(ref texture) => texture.value(uv, p, normal),
+            Self::DiffuseLight(ref texture) if hit.front_face => {
+                texture.value(&hit.uv, &hit.p, &hit.normal)
+            }
             _ => Color::new(),
         }
     }
