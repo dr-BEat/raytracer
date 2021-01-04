@@ -131,11 +131,18 @@ pub fn earth() -> (Vec<Hittable>, Vec<Hittable>) {
 }
 
 pub fn simple_light() -> (Vec<Hittable>, Vec<Hittable>) {
-    let lights = vec![Hittable::new_sphere(
-        Point::from(0.0, 2.0, 3.0),
-        1.0,
-        Material::new_diffuse_light(Color::from(4.0, 4.0, 4.0)),
-    )];
+    let lights = vec![
+        Hittable::new_sphere(
+            Point::from(0.0, 2.0, 3.0),
+            1.0,
+            Material::new_diffuse_light(Color::from(4.0, 4.0, 4.0)),
+        ),
+        Hittable::new_sphere(
+            Point::from(2.0, 0.3, 1.0),
+            0.2,
+            Material::new_dielectric(1.5),
+        ),
+    ];
     let mut world = vec![
         Hittable::new_sphere(
             Point::from(0.0, -1000.0, 0.0),
@@ -160,11 +167,6 @@ pub fn simple_light() -> (Vec<Hittable>, Vec<Hittable>) {
             ),
             5.0f64.to_radians(),
             Vector::from(0.0, 0.0, 1.0),
-        ),
-        Hittable::new_sphere(
-            Point::from(2.0, 0.3, 1.0),
-            0.2,
-            Material::new_dielectric(1.5),
         ),
     ];
     // Lights still need to be a part of the world too.

@@ -489,6 +489,12 @@ impl Hittable {
                 }
                 0.0
             }
+            Self::List(ref list) => {
+                let weight = 1.0 / list.len() as f64;
+                list.iter()
+                    .map(|pdf| weight * pdf.pdf_value(origin, direction))
+                    .sum()
+            }
             _ => 0.0,
         }
     }
@@ -500,6 +506,9 @@ impl Hittable {
                 let distance_squared = direction.sqrlen();
                 let uvw = ONB::from_w(&direction);
                 uvw.local(&Vector::random_to_sphere(sphere.radius, distance_squared))
+            }
+            Self::List(ref list) if !list.is_empty() => {
+                list.choose(&mut rand::thread_rng()).unwrap().random(origin)
             }
             _ => Vector::from(1.0, 0.0, 0.0),
         }
