@@ -131,7 +131,12 @@ pub fn earth() -> (Vec<Hittable>, Vec<Hittable>) {
 }
 
 pub fn simple_light() -> (Vec<Hittable>, Vec<Hittable>) {
-    let world = vec![
+    let lights = vec![Hittable::new_sphere(
+        Point::from(0.0, 2.0, 3.0),
+        1.0,
+        Material::new_diffuse_light(Color::from(4.0, 4.0, 4.0)),
+    )];
+    let mut world = vec![
         Hittable::new_sphere(
             Point::from(0.0, -1000.0, 0.0),
             1000.0,
@@ -145,11 +150,6 @@ pub fn simple_light() -> (Vec<Hittable>, Vec<Hittable>) {
             ),
             0.91,
             Color::from(0.0, 0.0, 0.0),
-        ),
-        Hittable::new_sphere(
-            Point::from(0.0, 2.0, 3.0),
-            1.0,
-            Material::new_diffuse_light(Color::from(4.0, 4.0, 4.0)),
         ),
         Hittable::new_rotate(
             Hittable::new_cube(
@@ -167,7 +167,9 @@ pub fn simple_light() -> (Vec<Hittable>, Vec<Hittable>) {
             Material::new_dielectric(1.5),
         ),
     ];
-    (world, vec![])
+    // Lights still need to be a part of the world too.
+    world.append(&mut (lights.clone()));
+    (world, lights)
 }
 
 pub fn cube_scene() -> (Vec<Hittable>, Vec<Hittable>) {

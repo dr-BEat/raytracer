@@ -114,7 +114,7 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let (mut world, lights) = match opts.scene {
+    let (mut world, mut lights) = match opts.scene {
         0 => random_scene(),
         1 => two_spheres(),
         2 => earth(),
@@ -123,10 +123,11 @@ fn main() {
         _ => small_scene(),
     };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
-    let lights = if lights.is_empty() {
-        None
-    } else {
-        Some(Hittable::List(lights))
+    let lights = match lights.as_slice() {
+        [] => None,
+        [Hittable::Empty] => None,
+        [_] => lights.pop(),
+        _ => Some(Hittable::List(lights)),
     };
 
     // Camera

@@ -29,6 +29,7 @@ where
     fn random_unit_vector() -> Vec3<T>;
     fn random_in_unit_disk() -> Vec3<T>;
     fn random_cosine_direction() -> Vec3<T>;
+    fn random_to_sphere(radius: f64, distance_squared: f64) -> Vec3<T>;
     fn near_zero(&self) -> bool;
     fn reflect(&self, n: &Vector) -> Vector;
     fn refract(&self, n: &Vector, etai_over_etat: f64) -> Vector;
@@ -77,6 +78,18 @@ impl Vec3Ext<f64> for Vec3<f64> {
         let phi = 2.0 * std::f64::consts::PI * r1;
         let x = phi.cos() * r2.sqrt();
         let y = phi.sin() * r2.sqrt();
+        Vector::from(x, y, z)
+    }
+
+    fn random_to_sphere(radius: f64, distance_squared: f64) -> Vector {
+        let mut rng = rand::thread_rng();
+        let r1 = rng.gen::<f64>();
+        let r2 = rng.gen::<f64>();
+        let z = 1.0 + r2 * ((1.0 - radius * radius / distance_squared).sqrt() - 1.0);
+
+        let phi = 2.0 * std::f64::consts::PI * r1;
+        let x = phi.cos() * (1.0 - z * z).sqrt();
+        let y = phi.sin() * (1.0 - z * z).sqrt();
         Vector::from(x, y, z)
     }
 

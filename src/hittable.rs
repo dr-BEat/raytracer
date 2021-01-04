@@ -476,12 +476,31 @@ impl Hittable {
 
     pub fn pdf_value(&self, origin: &Point, direction: &Vector) -> f64 {
         match *self {
+            Self::Sphere(ref sphere) => {
+                if self
+                    .hit(&Ray::new(*origin, *direction, 0.0), 0.0, std::f64::INFINITY)
+                    .is_some()
+                {
+                    let cos_theta_max = (1.0
+                        - sphere.radius * sphere.radius / (sphere.center - *origin).sqrlen())
+                    .sqrt();
+                    let solid_angle = 2.0 * std::f64::consts::PI * (1.0 - cos_theta_max);
+                    return 1.0 / solid_angle;
+                }
+                0.0
+            }
             _ => 0.0,
         }
     }
 
     pub fn random(&self, origin: &Point) -> Vector {
         match *self {
+            Self::Sphere(ref sphere) => {
+                let direction = sphere.center - *origin;
+                let distance_squared = direction.sqrlen();
+                let uvw = ONB::from_w(&direction);
+                uvw.local(&Vector::random_to_sphere(sphere.radius, distance_squared))
+            }
             _ => Vector::from(1.0, 0.0, 0.0),
         }
     }
