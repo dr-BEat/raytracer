@@ -134,6 +134,7 @@ impl Vec4Ext<f64> for Vec4<f64> {
 }
 
 /// Orthonormal Bases
+#[derive(Clone)]
 pub struct ONB([Vector; 3]);
 
 impl ONB {

@@ -2,6 +2,12 @@ use crate::alias::*;
 use crate::hittable::*;
 use crate::ray::*;
 use crate::texture::*;
+use crate::PDF;
+
+pub enum ScatterRecord<'a> {
+    Specular { ray: Ray, attenuation: Color },
+    PDF { pdf: PDF<'a>, attenuation: Color },
+}
 
 #[derive(Clone)]
 pub struct Dielectric {
@@ -48,16 +54,14 @@ impl Material {
         Self::Isotropic(Texture::Solid(albedo))
     }
 
-    pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<(Color, Ray, f64)> {
+    pub fn scatter(&self, r: &Ray, hit: &HitRecord) -> Option<ScatterRecord> {
         match *self {
             Self::Lambertian(ref texture) => {
-                let uvw = ONB::from_w(&hit.normal);
-                let scatter_direction = uvw.local(&Vector::random_cosine_direction());
-
                 let albedo = texture.value(&hit.uv, &hit.p, &hit.normal);
-                let scattered = Ray::new(hit.p, scatter_direction.normalize(), r.time);
-                let pdf = hit.normal.dot(scattered.direction) / std::f64::consts::PI;
-                Some((albedo, scattered, pdf))
+                Some(ScatterRecord::PDF {
+                    attenuation: albedo,
+                    pdf: PDF::Cosine(ONB::from_w(&hit.normal)),
+                })
             }
             Self::Dielectric(ref dielectric) => {
                 let refraction_ratio = if hit.front_face {
@@ -76,27 +80,24 @@ impl Material {
                 } else {
                     unit_direction.refract(&hit.normal, refraction_ratio)
                 };
-                Some((
-                    Color::from(1.0, 1.0, 1.0),
-                    Ray::new(hit.p, direction, r.time),
-                    1.0,
-                ))
+                Some(ScatterRecord::Specular {
+                    ray: Ray::new(hit.p, direction, r.time),
+                    attenuation: Color::from(1.0, 1.0, 1.0),
+                })
             }
             Self::Metal(ref metal) => {
                 let reflected = r.direction.normalize().reflect(&hit.normal);
                 let direction = reflected + metal.fuzz * Point::random_in_unit_sphere();
-                if direction.dot(hit.normal) <= 0.0 {
-                    return None;
-                }
-
-                Some((metal.albedo, Ray::new(hit.p, direction, r.time), 1.0))
+                Some(ScatterRecord::Specular {
+                    ray: Ray::new(hit.p, direction, r.time),
+                    attenuation: metal.albedo,
+                })
             }
             Self::DiffuseLight(_) => None,
-            Self::Isotropic(ref texture) => Some((
-                texture.value(&hit.uv, &hit.p, &hit.normal),
-                Ray::new(hit.p, Point::random_in_unit_sphere(), r.time),
-                1.0,
-            )),
+            Self::Isotropic(ref texture) => Some(ScatterRecord::PDF {
+                attenuation: texture.value(&hit.uv, &hit.p, &hit.normal),
+                pdf: PDF::Cosine(ONB::from_w(&hit.normal)),
+            }),
         }
     }
 

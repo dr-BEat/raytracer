@@ -473,6 +473,18 @@ impl Hittable {
             Self::Empty => None,
         }
     }
+
+    pub fn pdf_value(&self, origin: &Point, direction: &Vector) -> f64 {
+        match *self {
+            _ => 0.0,
+        }
+    }
+
+    pub fn random(&self, origin: &Point) -> Vector {
+        match *self {
+            _ => Vector::from(1.0, 0.0, 0.0),
+        }
+    }
 }
 
 /// Calculate the UV coordinates on a sphere.

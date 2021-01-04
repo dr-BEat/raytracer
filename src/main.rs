@@ -10,23 +10,19 @@ use std::time::Instant;
 
 mod alias;
 use alias::*;
-
 mod ray;
 use ray::*;
-
 mod cam;
 use cam::*;
-
 mod hittable;
 use hittable::*;
-
-mod material;
-
 mod aabb;
-
-mod texture;
-
+mod material;
+mod pdf;
 mod scenes;
+mod texture;
+use crate::material::*;
+use crate::pdf::PDF;
 use crate::scenes::*;
 
 /// A cool raytracer!
@@ -66,21 +62,41 @@ fn pixel_from_color(color: Color) -> Rgb<u8> {
     ])
 }
 
-fn ray_color(r: &Ray, background: Color, world: &Hittable, depth: u32) -> Color {
+fn ray_color(
+    r: &Ray,
+    background: Color,
+    world: &Hittable,
+    lights: &Option<Hittable>,
+    depth: u32,
+) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth == 0 {
         return Color::new();
     }
 
-    let hit_result = world.hit(r, 0.001, f64::INFINITY);
-    if let Some(hit) = hit_result {
+    if let Some(hit) = world.hit(r, 0.001, f64::INFINITY) {
         let emitted = hit.material.emit(&hit);
-        if let Some((albedo, scattered, pdf)) = hit.material.scatter(r, &hit) {
-            return emitted
-                + albedo
-                    * hit.material.scattering_pdf(r, &hit, &scattered)
-                    * ray_color(&scattered, background, world, depth - 1)
-                    / pdf;
+        if let Some(scatter) = hit.material.scatter(r, &hit) {
+            match scatter {
+                ScatterRecord::Specular { ray, attenuation } => {
+                    return attenuation * ray_color(&ray, background, world, lights, depth - 1)
+                }
+                ScatterRecord::PDF { pdf, attenuation } => {
+                    let mut pdf = pdf;
+                    if let Some(lights) = lights {
+                        let light = PDF::Hittable(lights, hit.p);
+                        pdf = PDF::Mixture(vec![light, pdf]);
+                    }
+                    let scattered = Ray::new(hit.p, pdf.generate(), r.time);
+                    let pdf_value = pdf.value(&scattered.direction);
+
+                    return emitted
+                        + attenuation
+                            * hit.material.scattering_pdf(r, &hit, &scattered)
+                            * ray_color(&scattered, background, world, lights, depth - 1)
+                            / pdf_value;
+                }
+            }
         }
         return emitted;
     }
@@ -98,7 +114,7 @@ fn main() {
     println!("{} {}", image_width, image_height);
 
     // World
-    let mut world = match opts.scene {
+    let (mut world, lights) = match opts.scene {
         0 => random_scene(),
         1 => two_spheres(),
         2 => earth(),
@@ -107,6 +123,11 @@ fn main() {
         _ => small_scene(),
     };
     let world = Hittable::new_bvh(world.as_mut_slice(), 0.0, 1.0);
+    let lights = if lights.is_empty() {
+        None
+    } else {
+        Some(Hittable::List(lights))
+    };
 
     // Camera
     let lookfrom = Point::from(13.0, 2.0, 3.0);
@@ -140,7 +161,7 @@ fn main() {
                 let v = ((image_height - y - 1) as f64 + rand::random::<f64>())
                     / (image_height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(&r, background, &world, opts.max_depth);
+                pixel_color += ray_color(&r, background, &world, &lights, opts.max_depth);
             }
             pixel_color /= opts.samples_per_pixel as f64;
             ((*x, *y), pixel_from_color(pixel_color))
