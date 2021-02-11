@@ -56,9 +56,9 @@ fn pixel_from_color(color: Color) -> Rgb<u8> {
 
     // Write the translated [0,255] value of each color component.
     Rgb([
-        (r.min(0.9999).max(0.0) * 256.0) as u8,
-        (g.min(0.9999).max(0.0) * 256.0) as u8,
-        (b.min(0.9999).max(0.0) * 256.0) as u8,
+        (r.clamp(0.0, 0.9999) * 256.0) as u8,
+        (g.clamp(0.0, 0.9999) * 256.0) as u8,
+        (b.clamp(0.0, 0.9999) * 256.0) as u8,
     ])
 }
 
