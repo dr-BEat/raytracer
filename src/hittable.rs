@@ -158,7 +158,7 @@ impl Hittable {
 
     pub fn new_bvh(hittables: &mut [Hittable], time_start: f64, time_end: f64) -> Self {
         if hittables.len() >= 2 {
-            let axis = rand::thread_rng().gen_range(0, 3);
+            let axis = rand::thread_rng().gen_range(0..3);
             let compare = |a: &Hittable, b: &Hittable| {
                 a.bounding_box(time_start, time_end)
                     .unwrap()
@@ -244,7 +244,7 @@ impl Hittable {
                 } else if rel_p[2] > 1.0 - epsilon {
                     Vector::from(0.0, 0.0, -1.0)
                 } else {
-                    println!("Miss! {}", rel_p);
+                    //println!("Miss! {}", rel_p);
                     Vector::from(0.5, 0.5, 0.5).normalize()
                 };
 

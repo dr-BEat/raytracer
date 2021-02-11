@@ -45,9 +45,9 @@ impl Vec3Ext<f64> for Vec3<f64> {
         let mut rng = rand::thread_rng();
         loop {
             let p = Point::from(
-                rng.gen_range(-1.0, 1.0),
-                rng.gen_range(-1.0, 1.0),
-                rng.gen_range(-1.0, 1.0),
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
             );
             if p.sqrlen() < 1.0 {
                 return p;
@@ -62,7 +62,7 @@ impl Vec3Ext<f64> for Vec3<f64> {
     fn random_in_unit_disk() -> Point {
         let mut rng = rand::thread_rng();
         loop {
-            let p = Point::from(rng.gen_range(-1.0, 1.0), rng.gen_range(-1.0, 1.0), 0.0);
+            let p = Point::from(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
             if p.sqrlen() < 1.0 {
                 return p;
             }

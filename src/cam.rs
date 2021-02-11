@@ -66,7 +66,7 @@ impl Camera {
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
-            rand::thread_rng().gen_range(self.time_open, self.time_close),
+            rand::thread_rng().gen_range(self.time_open..self.time_close),
         )
     }
 }

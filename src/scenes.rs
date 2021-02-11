@@ -79,11 +79,11 @@ pub fn random_scene() -> (Vec<Hittable>, Vec<Hittable>) {
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vector::from(
-                        rng.gen_range(0.5, 1.0),
-                        rng.gen_range(0.5, 1.0),
-                        rng.gen_range(0.5, 1.0),
+                        rng.gen_range(0.5..1.0),
+                        rng.gen_range(0.5..1.0),
+                        rng.gen_range(0.5..1.0),
                     );
-                    let fuzz = rng.gen_range(0.0, 0.5);
+                    let fuzz = rng.gen_range(0.0..0.5);
                     Material::new_metal(albedo, fuzz)
                 } else {
                     // glass
@@ -91,7 +91,7 @@ pub fn random_scene() -> (Vec<Hittable>, Vec<Hittable>) {
                 };
 
                 let hittable = if choose_mat < 0.8 {
-                    let center2 = center + Vector::from(0.0, rng.gen_range(0.0, 0.5), 0.0);
+                    let center2 = center + Vector::from(0.0, rng.gen_range(0.0..0.5), 0.0);
                     Hittable::new_moving_sphere(center, center2, 0.0, 1.0, 0.2, sphere_material)
                 } else {
                     Hittable::new_sphere(center, 0.2, sphere_material)
